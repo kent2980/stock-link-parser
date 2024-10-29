@@ -249,8 +249,6 @@ def test_fastapi(
                     json=model.get_file_path().model_dump(),
                 )
 
-                print(response.json())
-
                 assert response.status_code == 200
 
             for item in items:
