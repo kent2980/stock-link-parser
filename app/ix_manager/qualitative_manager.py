@@ -61,7 +61,7 @@ class QualitativeManager(BaseXbrlManager):
 
             parser: QualitativeParser = parser.set_qualitative_info()
 
-            parser.set_photo_info()  # 写真情報を設定
+            # parser.set_photo_info()  # 写真情報を設定
 
             data = parser.data
 

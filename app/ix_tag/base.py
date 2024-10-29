@@ -1,14 +1,15 @@
-import decimal
-from decimal import Decimal
+import uuid
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.utils import Utils
-
 
 class BaseTag(BaseModel):
     """Base class for tags"""
+
+    id: str = Field(
+        default=None, min_length=36, max_length=36
+    )  # uuidを設定
 
     @classmethod
     def keys(cls):
@@ -32,7 +33,6 @@ class BaseTag(BaseModel):
 class SourceFile(BaseTag):
     """ソースファイル情報を格納するクラス"""
 
-    id: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     type: Optional[str] = Field(default=None)
     xbrl_id: Optional[str] = Field(default=None)
@@ -40,3 +40,22 @@ class SourceFile(BaseTag):
 
     def __str__(self) -> str:
         return f"{self.name},{self.type},{self.xbrl_id},{self.url}"
+
+
+class FilePath(BaseTag):
+    """ファイルパス情報を格納するクラス"""
+
+    xbrl_id: Optional[str] = Field(
+        default=None, max_length=36, min_length=36
+    )
+    path: Optional[str] = Field(default=None)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.xbrl_id and self.path:
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.xbrl_id}_{self.path}",
+                )
+            )

@@ -1,4 +1,4 @@
-from decimal import Decimal
+import uuid
 from typing import Optional
 
 from pydantic import Field
@@ -21,6 +21,16 @@ class IxNonNumeric(BaseTag):
     source_file_id: Optional[str] = Field(default=None)
     xbrl_type: Optional[str] = Field(default=None)
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.name and self.context and self.xbrl_id:
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.name}_{self.context}_{self.xbrl_id}",
+                )
+            )
+
 
 class IxNonFraction(BaseTag):
     """非分数タグの情報を格納するクラス"""
@@ -41,6 +51,16 @@ class IxNonFraction(BaseTag):
     sign: Optional[str] = Field(default=None)
     display_numeric: Optional[str] = Field(default=None)
     display_scale: Optional[str] = Field(default=None)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.name and self.context and self.xbrl_id:
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.name}_{self.context}_{self.xbrl_id}",
+                )
+            )
 
 
 class IxHeader(BaseTag):
@@ -77,6 +97,20 @@ class IxHeader(BaseTag):
         default=None, description="予想経常利益増益率"
     )
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        if (
+            self.company_name
+            and self.securities_code
+            and self.document_name
+        ):
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.company_name}_{self.securities_code}_{self.document_name}_{self.xbrl_id}",
+                )
+            )
+
 
 class IxContext(BaseTag):
     """コンテキスト情報を格納するクラス"""
@@ -86,3 +120,13 @@ class IxContext(BaseTag):
     period: Optional[dict] = Field(default=None)
     scenario: Optional[list] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.context_id and self.xbrl_id:
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.context_id}_{self.xbrl_id}",
+                )
+            )

@@ -9,6 +9,7 @@ from app.ix_manager import (
     QualitativeManager,
     SchemaManager,
 )
+from app.ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
 
@@ -128,6 +129,9 @@ class XBRLModel(BaseXbrlModel):
 
     def ix_header(self):
         return self.ixbrl_manager.ix_header
+
+    def get_file_path(self):
+        return FilePath(xbrl_id=self.xbrl_id, path=self.xbrl_zip_path)
 
     def __str__(self) -> str:
 

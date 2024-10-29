@@ -1,4 +1,4 @@
-from .base import BaseTag, SourceFile
+from .base import BaseTag, FilePath, SourceFile
 from .ixbrl import IxContext, IxHeader, IxNonFraction, IxNonNumeric
 from .label import LabelArc, LabelLoc, LabelRoleRefs, LabelValue
 from .link import (
@@ -37,4 +37,5 @@ __all__ = [
     "SchemaImport",
     "SchemaLinkBaseRef",
     "QualitativeDocument",
+    "FilePath",
 ]

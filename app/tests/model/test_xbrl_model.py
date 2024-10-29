@@ -224,7 +224,7 @@ def test_fastapi(
 
     is_urls = get_api_is
 
-    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240808"
+    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240510"
 
     zips = list(Path(get_xbrl_zip_dir).rglob("*.zip"))
 
@@ -239,16 +239,17 @@ def test_fastapi(
 
             items = model.get_all_items()
 
-            data = {"xbrl_id": model.xbrl_id, "path": model.xbrl_zip_path}
-
             is_res = requests.get(
                 f"{base_url}/api/v1/xbrl/ix/file_path/is/{model.xbrl_id}/"
             ).json()
 
             if not is_res:
                 response = requests.post(
-                    f"{base_url}/api/v1/xbrl/ix/file_path/", json=data
+                    f"{base_url}/api/v1/xbrl/ix/file_path/",
+                    json=model.get_file_path().model_dump(),
                 )
+
+                print(response.json())
 
                 assert response.status_code == 200
 

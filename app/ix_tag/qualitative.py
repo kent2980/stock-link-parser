@@ -29,3 +29,13 @@ class QualitativeDocument(BaseTag):
         default=None, description="タイトル,本文"
     )
     photo_url: Optional[str] = Field(default=None, description="画像URL")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.content:
+            self.id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.content}_{self.xbrl_id}_{self.source_file_id}_{self.currentId}",
+                )
+            )
