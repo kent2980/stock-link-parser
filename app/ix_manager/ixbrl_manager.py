@@ -298,11 +298,11 @@ class IXBRLManager(BaseXbrlManager):
             # endregion
 
             # region 業績予想情報の取得
-            elif re.search(
+            elif re.search(  # 業績予想の修正
                 r".*CorrectionOf.*FinancialForecastIn.*$", item.name
             ):
                 is_earnings_forecast_revision = item.value == "true"
-            elif re.search(
+            elif re.search(  # 予想経常利益増益率
                 r".*ForecastOrdinaryIncomeGrowthRate$", item.name
             ):
                 forecast_ordinary_income_growth_rate = item.value
