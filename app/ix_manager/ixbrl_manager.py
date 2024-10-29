@@ -39,7 +39,6 @@ class IXBRLManager(BaseXbrlManager):
         self.__ix_non_numeric = None
         self.__ix_context = None
         self.__ix_header = None
-        self.__ix_stock_infos = None
 
         # 初期化メソッドを実行
         self.__init_parser()
@@ -170,115 +169,139 @@ class IXBRLManager(BaseXbrlManager):
     def __set_ix_header(self):
         """ix_header属性を設定します。"""
 
-        # region 変数を初期化
-        company_name = None  # 会社名
-        securities_code = None  # 証券コード
-        document_name = None  # 書類名
-        reporting_date = None  # 提出日
-        current_period = None  # 期間
-        listed_market = None  # 上場市場
-        market_section = None  # 上場区分
-        url = None  # URL
-        is_bs = False  # 貸借対照表の存在フラグ
-        is_pl = False  # 損益計算書の存在フラグ
-        is_cf = False  # キャッシュフロー計算書の存在フラグ
-        is_ci = False  # 包括利益計算書の存在フラグ
-        is_sce = False  # 株主資本変動計算書の存在フラグ
-        is_sfp = False  # 財政状態計算書の存在フラグ
-        fiscal_year_end = None  # 決算期
-        tel = None  # 電話番号
-        xbrl_id = None  # XBRL ID
-        report_type = None  # 提出種別
+        # 変数を初期化
+        company_name = None
+        securities_code = None
+        document_name = None
+        reporting_date = None
+        current_period = None
+        listed_market = None
+        market_section = None
+        url = None
+        is_bs = False
+        is_pl = False
+        is_cf = False
+        is_ci = False
+        is_sce = False
+        is_sfp = False
+        fiscal_year_end = None
+        tel = None
+        xbrl_id = None
+        report_type = None
         is_dividend_revision = None  # 配当の修正
         dividend_increase_rate = None  # 増配率
         is_earnings_forecast_revision = None  # 業績予想の修正
         forecast_ordinary_income_growth_rate = None  # 予想経常利益増益率
-        # endregion
 
         # ix_non_numericがNoneの場合は、ix_non_numericを設定する
         if self.ix_non_numeric is None:
             self.__set_ix_non_numeric()
 
-        for item in [
-            item for items in self.ix_non_numeric for item in items
-        ]:
-            company_name = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.CompanyName
-            )  # 会社名
-            securities_code = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.SecuritiesCode
-            )  # 証券コード
-            document_name = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.DocumentName
-            )  # 書類名
-            reporting_date = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.ReportingDate
-            )  # 提出日
-            current_period = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.CurrentPeriod
-            )  # 期間
-            url = IxHeadRegex.assign_if_match(item, IxHeadRegex.URL)  # URL
-            is_bs = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsBS
-            )  # 貸借対照表の存在フラグ
-            is_pl = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsPL
-            )  # 損益計算書の存在フラグ
-            is_cf = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsCF
-            )  # キャッシュフロー計算書の存在フラグ
-            is_ci = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsCI
-            )  # 包括利益計算書の存在フラグ
-            is_sce = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsSCE
-            )  # 株主資本変動計算書の存在フラグ
-            is_sfp = IxHeadRegex.is_if_match(
-                item, IxHeadRegex.IsSFP
-            )  # 財政状態計算書の存在フラグ
-            fiscal_year_end = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.FiscalYearEnd
-            )  # 決算期
-            tel = IxHeadRegex.assign_if_match(
-                item, IxHeadRegex.Tel
-            )  # 電話番号
+        # ix_non_numericからデータを取得
+        item_lists: List[List[IxNonNumeric]] = self.ix_non_numeric
+        item_list = [item for items in item_lists for item in items]
 
-            # 東証の上場市場と上場区分を取得
-            if re.search(IxHeadRegex.ListedMarket, item.name):  # 上場市場
+        for item in item_list:
+            if re.search(
+                r"CompanyName|AssetManagerREIT", item.name
+            ):  # 会社名
+                company_name = item.value
+            elif re.search(r"Securit.*Code$", item.name):  # 証券コード
+                securities_code = item.value
+            elif re.search(r"DocumentName", item.name):  # 書類名
+                document_name = item.value
+            elif re.search(
+                r"_FilingDate$|_ReportingDateOf.*Correction.*",
+                item.name,
+            ):  # 提出日
+                reporting_date = item.value
+            elif re.search(r"TypeOfCurrentPeriod", item.name):  # 期間
+                current_period = item.value
+            elif re.search(r".*URL.*", item.name):  # URL
+                url = item.value
+            elif re.search(r".*FiscalYearEnd$", item.name):  # 決算期
+                fiscal_year_end = item.value
+            elif re.search(r".*Tel$", item.name):  # 電話番号
+                tel = item.value
+            elif re.search(r".*DividendIncreaseRate$", item.name):
+                dividend_increase_rate = item.value
+            elif re.search(
+                r".*ForecastOrdinaryIncomeGrowthRate$", item.name
+            ):
+                forecast_ordinary_income_growth_rate = item.value
+
+            if re.search(r"TokyoStockExchange$", item.name):  # 上場市場
                 if item.format == "booleantrue" or item.value == "true":
                     listed_market = "東京証券取引所"
             elif re.search(
-                IxHeadRegex.MarketSection, item.name
+                r"TokyoStockExchange(?!$)", item.name
             ):  # 上場区分
                 if item.format == "booleantrue" or item.value == "true":
                     market_section = item.name
+
+            if re.search(
+                r".*BalanceSheet.*TextBlock$", item.name
+            ):  # 貸借対照表の存在フラグ
+                is_bs = True
+            elif re.search(
+                r"(.*StatementOfIncome|.*StatementOfProfitOrLoss).*TextBlock$",
+                item.name,
+            ):  # 損益計算書の存在フラグ
+                is_pl = True
+            elif re.search(
+                r".*StatementOfCashFlows.*TextBlock$", item.name
+            ):  # キャッシュフロー計算書の存在フラグ
+                is_cf = True
+            elif re.search(
+                r".*StatementOfComprehensiveIncome.*TextBlock$",
+                item.name,
+            ):  # 包括利益計算書の存在フラグ
+                is_ci = True
+            elif re.search(
+                r".*StatementOfChangesInEquity.*TextBlock$", item.name
+            ):  # 株主資本変動計算書の存在フラグ
+                is_sce = True
+            elif re.search(
+                r".*StatementOfFinancialPositionI.*TextBlock$",
+                item.name,
+            ):  # 財政状態計算書の存在フラグ
+                is_sfp = True
+
+            if re.search(
+                r".*CorrectionOfDividendForecastIn.*$", item.name
+            ):
+                is_dividend_revision = item.value == "true"
+            elif re.search(
+                r".*CorrectionOf.*FinancialForecastIn.*$", item.name
+            ):
+                is_earnings_forecast_revision = item.value == "true"
 
             xbrl_id = item.xbrl_id  # XBRL ID
             report_type = item.report_type  # 提出種別
 
         ix_header = IxHeader(
-            company_name=company_name,  # 会社名
-            securities_code=securities_code,  # 証券コード
-            document_name=document_name,  # 書類名
-            reporting_date=reporting_date,  # 提出日
-            current_period=current_period,  # 期間
-            xbrl_id=xbrl_id,  # XBRL ID
-            report_type=report_type,  # 提出種別
-            listed_market=listed_market,  # 上場市場
-            market_section=market_section,  # 上場区分
-            url=url,  # URL
-            is_bs=is_bs,  # 貸借対照表の存在フラグ
-            is_pl=is_pl,  # 損益計算書の存在フラグ
-            is_cf=is_cf,  # キャッシュフロー計算書の存在フラグ
-            is_ci=is_ci,  # 包括利益計算書の存在フラグ
-            is_sce=is_sce,  # 株主資本変動計算書の存在フラグ
-            is_sfp=is_sfp,  # 財政状態計算書の存在フラグ
-            fiscal_year_end=fiscal_year_end,  # 決算期
-            tel=tel,  # 電話番号
-            is_dividend_revision=is_dividend_revision,  # 配当の修正
-            dividend_increase_rate=dividend_increase_rate,  # 増配率
-            is_earnings_forecast_revision=is_earnings_forecast_revision,  # 業績予想の修正
-            forecast_ordinary_income_growth_rate=forecast_ordinary_income_growth_rate,  # 予想経常利益増益率
+            company_name=company_name,
+            securities_code=securities_code,
+            document_name=document_name,
+            reporting_date=reporting_date,
+            current_period=current_period,
+            xbrl_id=xbrl_id,
+            report_type=report_type,
+            listed_market=listed_market,
+            market_section=market_section,
+            url=url,
+            is_bs=is_bs,
+            is_pl=is_pl,
+            is_cf=is_cf,
+            is_ci=is_ci,
+            is_sce=is_sce,
+            is_sfp=is_sfp,
+            fiscal_year_end=fiscal_year_end,
+            tel=tel,
+            is_dividend_revision=is_dividend_revision,
+            dividend_increase_rate=dividend_increase_rate,
+            is_earnings_forecast_revision=is_earnings_forecast_revision,
+            forecast_ordinary_income_growth_rate=forecast_ordinary_income_growth_rate,
         )
 
         header = ix_header
@@ -291,56 +314,3 @@ class IXBRLManager(BaseXbrlManager):
             items=header,
             sort_position=0,
         )
-
-
-class IxHeadRegex:
-    """iXBRLのヘッダー情報を取得するための正規表現を格納するクラス"""
-
-    CompanyName = re.compile(r"CompanyName|AssetManagerREIT")  # 会社名
-    SecuritiesCode = re.compile(r"Securit.*Code$")  # 証券コード
-    DocumentName = re.compile(r"DocumentName")  # 書類名
-    ReportingDate = re.compile(
-        r"_FilingDate$|_ReportingDateOf.*Correction.*"
-    )  # 提出日
-    CurrentPeriod = re.compile(r"TypeOfCurrentPeriod")  # 期間
-    ListedMarket = re.compile(r"TokyoStockExchange$")  # 上場市場
-    MarketSection = re.compile(r"TokyoStockExchange(?!$)")  # 上場区分
-    URL = re.compile(r".*URL.*")  # URL
-    IsBS = re.compile(
-        r".*BalanceSheet.*TextBlock$"
-    )  # 貸借対照表の存在フラグ
-    IsPL = re.compile(
-        r"(.*StatementOfIncome|.*StatementOfProfitOrLoss).*TextBlock$"
-    )  # 損益計算書の存在フラグ
-    IsCF = re.compile(
-        r".*StatementOfCashFlows.*TextBlock$"
-    )  # キャッシュフロー計算書の存在フラグ
-    IsCI = re.compile(
-        r".*StatementOfComprehensiveIncome.*TextBlock$"
-    )  # 包括利益計算書の存在フラグ
-    IsSCE = re.compile(
-        r".*StatementOfChangesInEquity.*TextBlock$"
-    )  # 株主資本変動計算書の存在フラグ
-    IsSFP = re.compile(
-        r".*StatementOfFinancialPositionI.*TextBlock$"
-    )  # 財政状態計算書の存在フラグ
-    FiscalYearEnd = re.compile(r".*FiscalYearEnd$")  # 決算期
-    Tel = re.compile(r".*Tel$")  # 電話番号
-    DividendRevision = re.compile(r".*DividendRevision$")  # 配当の修正
-    DividendIncreaseRate = re.compile(r".*DividendIncreaseRate$")  # 増配率
-    EarningsForecastRevision = re.compile(
-        r".*EarningsForecastRevision$"
-    )  # 業績予想の修正
-    ForecastOrdinaryIncomeGrowthRate = re.compile(
-        r".*ForecastOrdinaryIncomeGrowthRate$"
-    )  # 予想経常利益増益率
-
-    def assign_if_match(
-        cls, item: IxNonFraction, pattern: re.Pattern
-    ) -> Optional[any]:
-        if re.search(pattern, item.name):
-            return item.value
-        return None
-
-    def is_if_match(cls, item: IxNonFraction, pattern: re.Pattern) -> bool:
-        return re.search(pattern, item.name)

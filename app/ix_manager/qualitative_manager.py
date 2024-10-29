@@ -47,6 +47,7 @@ class QualitativeManager(BaseXbrlManager):
 
     def __init_manager(self):
         """QualitativeManagerの初期化"""
+        self.set_source_file(self.parsers, class_name="qualitative")
         self.__set_qualitative_info()
 
     def __set_qualitative_info(self):

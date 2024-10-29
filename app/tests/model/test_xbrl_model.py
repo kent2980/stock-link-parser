@@ -218,13 +218,13 @@ def test_fastapi(
 
     url, is_url = None, None
 
-    base_url = base_url3
+    base_url = base_url1
 
     urls = get_api_url
 
     is_urls = get_api_is
 
-    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240813"
+    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240809"
 
     zips = list(Path(get_xbrl_zip_dir).rglob("*.zip"))
 

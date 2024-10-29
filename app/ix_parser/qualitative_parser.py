@@ -269,6 +269,6 @@ if __name__ == "__main__":
         "/Users/user/Documents/tdnet/xbrl/20240809/XBRLData 4/Attachment/qualitative.htm"
     )
     parser.set_qualitative_info()
-    parser.set_photo_info()
+    # parser.set_photo_info()
     lists = parser.data
     pandas.DataFrame(lists).to_csv("qualitative.csv", index=False)

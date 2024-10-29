@@ -106,6 +106,7 @@ def get_api_url():
         # "sc_link_elements": f"{url_base}/schema/elements/list/",
         # "sc_link_import": f"{url_base}/schema/imports/list/",
         "sc_linkbase_ref": f"{url_base}/schema/linkbase/list/",
+        "qualitative_source_file": f"{url_base}/source/list/",
         "qualitative_info": f"{url_base}/qualitative/list/",
     }
 
@@ -139,6 +140,7 @@ def get_api_is():
         "pre_link_arcs": f"{url_base}/link/pre/arc/is/",
         "sc_source_file": f"{url_base}/source/is/",
         "sc_linkbase_ref": f"{url_base}/schema/linkbase/is/",
+        "qualitative_source_file": f"{url_base}/source/is/",
         "qualitative_info": f"{url_base}/qualitative/is/",
     }
 
