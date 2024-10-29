@@ -221,20 +221,20 @@ class IXBRLManager(BaseXbrlManager):
             # endregion
 
             # region 会社情報の取得
-            if re.search(
+            if re.search(  # 会社名
                 r"CompanyName|AssetManagerREIT", item.name
-            ):  # 会社名
+            ):
                 company_name = item.value
             elif re.search(r"Securit.*Code$", item.name):  # 証券コード
                 securities_code = item.value
             elif re.search(r"DocumentName", item.name):  # 書類名
                 document_name = item.value
-            elif re.search(
+            elif re.search(  # 提出日
                 r"_FilingDate$|_ReportingDateOf.*Correction.*",
                 item.name,
-            ):  # 提出日
+            ):
                 reporting_date = item.value
-            elif re.search(r"TypeOfCurrentPeriod", item.name):  # 期間
+            elif re.search(r"TypeOfCurrentPeriod", item.name):  # 期末
                 current_period = item.value
             elif re.search(r".*URL.*", item.name):  # URL
                 url = item.value
@@ -248,9 +248,9 @@ class IXBRLManager(BaseXbrlManager):
             elif re.search(r"TokyoStockExchange$", item.name):  # 上場市場
                 if item.format == "booleantrue" or item.value == "true":
                     listed_market = "東京証券取引所"
-            elif re.search(
+            elif re.search(  # 上場区分
                 r"TokyoStockExchange(?!$)", item.name
-            ):  # 上場区分
+            ):
                 if item.format == "booleantrue" or item.value == "true":
                     market_section = item.name
             # endregion
@@ -258,30 +258,30 @@ class IXBRLManager(BaseXbrlManager):
             # region 財務諸表情報の取得
             elif re.search(
                 r".*BalanceSheet.*TextBlock$", item.name
-            ):  # 貸借対照表の存在フラグ
+            ):  # 貸借対照表の有無
                 is_bs = True
-            elif re.search(
+            elif re.search(  # 損益計算書の有無
                 r"(.*StatementOfIncome|.*StatementOfProfitOrLoss).*TextBlock$",
                 item.name,
-            ):  # 損益計算書の存在フラグ
+            ):
                 is_pl = True
-            elif re.search(
+            elif re.search(  # キャッシュフロー計算書の有無
                 r".*StatementOfCashFlows.*TextBlock$", item.name
-            ):  # キャッシュフロー計算書の存在フラグ
+            ):
                 is_cf = True
-            elif re.search(
+            elif re.search(  # 総合利益計算書の有無
                 r".*StatementOfComprehensiveIncome.*TextBlock$",
                 item.name,
-            ):  # 包括利益計算書の存在フラグ
+            ):
                 is_ci = True
-            elif re.search(
+            elif re.search(  # 株主資本変動計算書の有無
                 r".*StatementOfChangesInEquity.*TextBlock$", item.name
-            ):  # 株主資本変動計算書の存在フラグ
+            ):
                 is_sce = True
-            elif re.search(
+            elif re.search(  # 財務状態計算書の有無
                 r".*StatementOfFinancialPositionI.*TextBlock$",
                 item.name,
-            ):  # 財政状態計算書の存在フラグ
+            ):
                 is_sfp = True
             # endregion
 
@@ -289,11 +289,13 @@ class IXBRLManager(BaseXbrlManager):
             # endregion
 
             # region 配当情報の取得
-            elif re.search(
+            elif re.search(  # 配当の修正
                 r".*CorrectionOfDividendForecastIn.*$", item.name
             ):
                 is_dividend_revision = item.value == "true"
-            elif re.search(r".*DividendIncreaseRate$", item.name):
+            elif re.search(
+                r".*DividendIncreaseRate$", item.name
+            ):  # 増配率
                 dividend_increase_rate = item.value
             # endregion
 
