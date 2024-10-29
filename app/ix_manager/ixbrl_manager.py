@@ -169,7 +169,16 @@ class IXBRLManager(BaseXbrlManager):
     def __set_ix_header(self):
         """ix_header属性を設定します。"""
 
-        # 変数を初期化
+        # ここに機能を追加する手順を記述します。
+        # 新しい機能を追加する際は、変数名を定義して初期化してください。
+        # 例: company_name = None
+        # 次にitem_listのループ処理を行い、item.nameに対して正規表現を使用して値を取得します。
+        # 例: if re.search(r"CompanyName", item.name): company_name = item.value
+        # IXheaderクラスの定義に移動して、新しい変数を追加してください。
+        # 最後にIxHeaderクラスのインスタンスを作成し、ix_headerに新しい変数を代入します。
+        # 例: ix_header = IxHeader(company_name=company_name)
+
+        # region 変数を初期化
         company_name = None
         securities_code = None
         document_name = None
@@ -192,6 +201,7 @@ class IXBRLManager(BaseXbrlManager):
         dividend_increase_rate = None  # 増配率
         is_earnings_forecast_revision = None  # 業績予想の修正
         forecast_ordinary_income_growth_rate = None  # 予想経常利益増益率
+        # endregion
 
         # ix_non_numericがNoneの場合は、ix_non_numericを設定する
         if self.ix_non_numeric is None:
@@ -201,7 +211,15 @@ class IXBRLManager(BaseXbrlManager):
         item_lists: List[List[IxNonNumeric]] = self.ix_non_numeric
         item_list = [item for items in item_lists for item in items]
 
+        # ループ処理によるデータマッピング
         for item in item_list:
+
+            # region 基本情報の取得
+            xbrl_id = item.xbrl_id  # XBRL ID
+            report_type = item.report_type  # 提出種別
+            # endregion
+
+            # region item.valueの値を取得
             if re.search(
                 r"CompanyName|AssetManagerREIT", item.name
             ):  # 会社名
@@ -229,7 +247,9 @@ class IXBRLManager(BaseXbrlManager):
                 r".*ForecastOrdinaryIncomeGrowthRate$", item.name
             ):
                 forecast_ordinary_income_growth_rate = item.value
+            # endregion
 
+            # region item.formatの値を取得
             if re.search(r"TokyoStockExchange$", item.name):  # 上場市場
                 if item.format == "booleantrue" or item.value == "true":
                     listed_market = "東京証券取引所"
@@ -238,7 +258,9 @@ class IXBRLManager(BaseXbrlManager):
             ):  # 上場区分
                 if item.format == "booleantrue" or item.value == "true":
                     market_section = item.name
+            # endregion
 
+            # region bool型の値を取得
             if re.search(
                 r".*BalanceSheet.*TextBlock$", item.name
             ):  # 貸借対照表の存在フラグ
@@ -266,7 +288,9 @@ class IXBRLManager(BaseXbrlManager):
                 item.name,
             ):  # 財政状態計算書の存在フラグ
                 is_sfp = True
+            # endregion
 
+            # region 修正情報の取得
             if re.search(
                 r".*CorrectionOfDividendForecastIn.*$", item.name
             ):
@@ -275,9 +299,7 @@ class IXBRLManager(BaseXbrlManager):
                 r".*CorrectionOf.*FinancialForecastIn.*$", item.name
             ):
                 is_earnings_forecast_revision = item.value == "true"
-
-            xbrl_id = item.xbrl_id  # XBRL ID
-            report_type = item.report_type  # 提出種別
+            # endregion
 
         ix_header = IxHeader(
             company_name=company_name,

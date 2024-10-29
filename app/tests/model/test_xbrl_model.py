@@ -224,7 +224,7 @@ def test_fastapi(
 
     is_urls = get_api_is
 
-    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240809"
+    get_xbrl_zip_dir = "/Users/user/Documents/tdnet/xbrl/20240808"
 
     zips = list(Path(get_xbrl_zip_dir).rglob("*.zip"))
 
