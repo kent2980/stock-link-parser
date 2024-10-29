@@ -213,13 +213,14 @@ class IXBRLManager(BaseXbrlManager):
 
         # ループ処理によるデータマッピング
         for item in item_list:
+            # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
 
             # region 基本情報の取得
             xbrl_id = item.xbrl_id  # XBRL ID
             report_type = item.report_type  # 提出種別
             # endregion
 
-            # region item.valueの値を取得
+            # region 会社情報の取得
             if re.search(
                 r"CompanyName|AssetManagerREIT", item.name
             ):  # 会社名
@@ -241,16 +242,10 @@ class IXBRLManager(BaseXbrlManager):
                 fiscal_year_end = item.value
             elif re.search(r".*Tel$", item.name):  # 電話番号
                 tel = item.value
-            elif re.search(r".*DividendIncreaseRate$", item.name):
-                dividend_increase_rate = item.value
-            elif re.search(
-                r".*ForecastOrdinaryIncomeGrowthRate$", item.name
-            ):
-                forecast_ordinary_income_growth_rate = item.value
             # endregion
 
-            # region item.formatの値を取得
-            if re.search(r"TokyoStockExchange$", item.name):  # 上場市場
+            # region 取引所情報の取得
+            elif re.search(r"TokyoStockExchange$", item.name):  # 上場市場
                 if item.format == "booleantrue" or item.value == "true":
                     listed_market = "東京証券取引所"
             elif re.search(
@@ -260,8 +255,8 @@ class IXBRLManager(BaseXbrlManager):
                     market_section = item.name
             # endregion
 
-            # region bool型の値を取得
-            if re.search(
+            # region 財務諸表情報の取得
+            elif re.search(
                 r".*BalanceSheet.*TextBlock$", item.name
             ):  # 貸借対照表の存在フラグ
                 is_bs = True
@@ -290,15 +285,27 @@ class IXBRLManager(BaseXbrlManager):
                 is_sfp = True
             # endregion
 
-            # region 修正情報の取得
-            if re.search(
+            # region 経営情報の取得
+            # endregion
+
+            # region 配当情報の取得
+            elif re.search(
                 r".*CorrectionOfDividendForecastIn.*$", item.name
             ):
                 is_dividend_revision = item.value == "true"
+            elif re.search(r".*DividendIncreaseRate$", item.name):
+                dividend_increase_rate = item.value
+            # endregion
+
+            # region 業績予想情報の取得
             elif re.search(
                 r".*CorrectionOf.*FinancialForecastIn.*$", item.name
             ):
                 is_earnings_forecast_revision = item.value == "true"
+            elif re.search(
+                r".*ForecastOrdinaryIncomeGrowthRate$", item.name
+            ):
+                forecast_ordinary_income_growth_rate = item.value
             # endregion
 
         ix_header = IxHeader(
@@ -324,6 +331,7 @@ class IXBRLManager(BaseXbrlManager):
             dividend_increase_rate=dividend_increase_rate,
             is_earnings_forecast_revision=is_earnings_forecast_revision,
             forecast_ordinary_income_growth_rate=forecast_ordinary_income_growth_rate,
+            # ...機能を追加する際は、ここに新しい変数を追加してください。
         )
 
         header = ix_header
