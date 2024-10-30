@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 from exception import XbrlListEmptyError
 from ix_manager import (
     BaseXbrlManager,
@@ -36,6 +38,7 @@ class XBRLModel(BaseXbrlModel):
         self.__qualitative_manager = QualitativeManager(
             self.directory_path, xbrl_id=self.xbrl_id
         )
+        self.__all_items = None
 
     def _init_manager(self, manager_class: BaseXbrlManager):
         try:
@@ -73,6 +76,12 @@ class XBRLModel(BaseXbrlModel):
     @property
     def qualitative_manager(self):
         return self.__qualitative_manager
+
+    @property
+    def all_items(self):
+        if self.__all_items is None:
+            self.__all_items = self.get_all_items()
+        return self.__all_items
 
     def __del__(self):
         super().__del__()
@@ -116,20 +125,46 @@ class XBRLModel(BaseXbrlModel):
             "qualitative": self.get_qualitative(),
         }
         # all_dataから値がNoneのものを削除
-        return {k: v for k, v in all_data.items() if v is not None}
+        items = {k: v for k, v in all_data.items() if v is not None}
+
+        return items
 
     def ixbrl_roles(self):
         for value in self.ixbrl_manager.ixbrl_roles():
             yield value
 
-    def get_all_items(self):
+    def get_all_items(self) -> List[Dict[str, any]]:
+        """<p>XBRLファイルに含まれる全てのデータを取得します。</p>
+        <p>取得した辞書のキーはget_all_items_keys()で取得できます</p>
+        """
         lists = []
+
+        file_path = {
+            "key": "ix_file_path",
+            "item": self.get_file_path().model_dump(),
+        }
+
+        lists.append(file_path)
+
         for _, manager in self.get_all_manager().items():
             for item in manager.items:
                 # listsとitemsを結合
                 lists.append(item)
 
+        self.__all_items = lists
+
         return lists
+
+    def get_all_items_keys(self) -> List[str]:
+        """XBRLファイルに含まれる全てのデータのキーを取得します"""
+        keys = []
+        for item in self.all_items:
+            keys.append(item["key"])
+
+        # keysの重複を削除
+        keys = list(set(keys))
+
+        return keys
 
     def ix_header(self):
         return self.ixbrl_manager.ix_header
