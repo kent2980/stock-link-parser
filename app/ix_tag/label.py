@@ -19,7 +19,7 @@ class LabelValue(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_label and self.xlink_role:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_label}_{self.xlink_role}_{self.source_file_id}_{self.xlink_type}_{self.xml_lang}",
@@ -39,7 +39,7 @@ class LabelLoc(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_label and self.xlink_schema:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_label}_{self.xlink_schema}_{self.source_file_id}_{self.xlink_type}_{self.xlink_href}",
@@ -59,7 +59,7 @@ class LabelArc(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_from and self.xlink_to:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_from}_{self.xlink_to}_{self.source_file_id}_{self.xlink_type}_{self.xlink_arcrole}",
@@ -78,7 +78,7 @@ class LabelRoleRefs(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.role_uri and self.xlink_schema:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.role_uri}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}",

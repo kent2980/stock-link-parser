@@ -24,7 +24,7 @@ class IxNonNumeric(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.name and self.context and self.xbrl_id:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.name}_{self.context}_{self.xbrl_id}",
@@ -55,7 +55,7 @@ class IxNonFraction(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.name and self.context and self.xbrl_id:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.name}_{self.context}_{self.xbrl_id}",
@@ -104,7 +104,7 @@ class IxHeader(BaseTag):
             and self.securities_code
             and self.document_name
         ):
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.company_name}_{self.securities_code}_{self.document_name}_{self.xbrl_id}",
@@ -124,7 +124,7 @@ class IxContext(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.context_id and self.xbrl_id:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.context_id}_{self.xbrl_id}",

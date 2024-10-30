@@ -18,7 +18,7 @@ class SchemaImport(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.schema_location and self.name_space:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.schema_location}_{self.name_space}_{self.xbrl_type}_{self.xbrl_id}",
@@ -41,7 +41,7 @@ class SchemaLinkBaseRef(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_href and self.xlink_role:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_href}_{self.xlink_role}_{self.xbrl_type}_{self.xbrl_id}",
@@ -67,7 +67,7 @@ class SchemaElement(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.name and self.xbrl_id:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.name}_{self.xbrl_id}",

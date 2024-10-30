@@ -19,7 +19,7 @@ class LinkSchemaImport(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.schema_location and self.name_space:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.schema_location}_{self.name_space}_{self.document_type}_{self.xbrl_id}",
@@ -42,7 +42,7 @@ class LinkBaseRef(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_href and self.xlink_role:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_href}_{self.xlink_role}_{self.document_type}_{self.xbrl_id}",
@@ -69,7 +69,7 @@ class LinkElement(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.name and self.type:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.name}_{self.type}_{self.document_type}_{self.xbrl_id}",
@@ -91,7 +91,7 @@ class LinkRole(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.role_uri and self.xlink_schema:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.role_uri}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.xbrl_id}",
@@ -115,10 +115,10 @@ class LinkLoc(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_label and self.xlink_schema:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_label}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.source_file_id}",
+                    f"{self.xlink_label}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.source_file_id}_{self.xbrl_id}_{self.attr_value}",
                 )
             )
 
@@ -141,10 +141,10 @@ class LinkArc(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_from and self.xlink_to:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_from}_{self.xlink_to}_{self.xlink_type}_{self.xlink_arcrole}_{self.source_file_id}",
+                    f"{self.xlink_from}_{self.xlink_to}_{self.xlink_type}_{self.xlink_arcrole}_{self.source_file_id}_{self.attr_value}_{self.xlink_order}_{self.xlink_weight}_{self.xbrl_id}",
                 )
             )
 
@@ -162,7 +162,7 @@ class LinkBase(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xmlns_xlink and self.xmlns_xsi:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xmlns_xlink}_{self.xmlns_xsi}_{self.xmlns_link}_{self.xbrl_id}",
@@ -182,7 +182,7 @@ class LinkTag(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xlink_type and self.xlink_role:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xlink_type}_{self.xlink_role}_{self.xbrl_id}",

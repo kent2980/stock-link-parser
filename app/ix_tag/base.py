@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class BaseTag(BaseModel):
     """Base class for tags"""
 
-    id: str = Field(
+    item_key: str = Field(
         default=None, min_length=36, max_length=36
     )  # uuidを設定
 
@@ -33,6 +33,7 @@ class BaseTag(BaseModel):
 class SourceFile(BaseTag):
     """ソースファイル情報を格納するクラス"""
 
+    id: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     type: Optional[str] = Field(default=None)
     xbrl_id: Optional[str] = Field(default=None)
@@ -40,6 +41,16 @@ class SourceFile(BaseTag):
 
     def __str__(self) -> str:
         return f"{self.name},{self.type},{self.xbrl_id},{self.url}"
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.name and self.xbrl_id:
+            self.item_key = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.name}_{self.xbrl_id}",
+                )
+            )
 
 
 class FilePath(BaseTag):
@@ -53,7 +64,7 @@ class FilePath(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.xbrl_id and self.path:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.xbrl_id}_{self.path}",

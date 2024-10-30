@@ -33,7 +33,7 @@ class QualitativeDocument(BaseTag):
     def __init__(self, **data):
         super().__init__(**data)
         if self.content:
-            self.id = str(
+            self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{self.content}_{self.xbrl_id}_{self.source_file_id}_{self.currentId}",
