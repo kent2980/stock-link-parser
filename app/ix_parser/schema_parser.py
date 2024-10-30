@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Optional
 
-from app.ix_tag import SchemaElement, SchemaImport, SchemaLinkBaseRef
-from app.utils import Utils
+from ix_tag import SchemaElement, SchemaImport, SchemaLinkBaseRef
+from utils import Utils
 
 from . import BaseXBRLParser
 

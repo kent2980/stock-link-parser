@@ -1,12 +1,16 @@
-import endpoints as ep
 import requests
+from api import endpoints as ep
+from ix_models import XBRLModel
 from settings import Settings
 
 settings = Settings()
 
 
 class Insert:
-    def __init__(self):
+    """APIにデータを挿入するためのクラス"""
+
+    def __init__(self, output_path):
+        self.output_path = output_path
         self.url = settings.API_URL
         self.headers = {
             "Content-Type": "application/json",
@@ -92,3 +96,9 @@ class Insert:
         url = self.url + ep.POST_QUALITATIVE
         response = requests.post(url, headers=self.headers, json=data)
         return response
+
+    def insert_xbrl_zip(self, zip_path):
+        model = XBRLModel(zip_path, self.output_path)
+        items = model.get_all_items()
+        for item in items:
+            print(item)

@@ -1,13 +1,11 @@
 import re
 from typing import List, Optional
 
-from app.exception import XbrlListEmptyError
-from app.exception.xbrl_parser_exception import (
-    DocumentNameTagNotFoundError,
-)
-from app.ix_manager import BaseXbrlManager
-from app.ix_parser import IxbrlParser
-from app.ix_tag import IxContext, IxHeader, IxNonFraction, IxNonNumeric
+from exception import XbrlListEmptyError
+from exception.xbrl_parser_exception import DocumentNameTagNotFoundError
+from ix_manager import BaseXbrlManager
+from ix_parser import IxbrlParser
+from ix_tag import IxContext, IxHeader, IxNonFraction, IxNonNumeric
 
 
 class IXBRLManager(BaseXbrlManager):

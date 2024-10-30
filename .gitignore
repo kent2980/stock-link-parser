@@ -13,7 +13,6 @@ Log/
 */tests/.output
 */tests/.data
 */tests/.xbrl
-.venv
 
 # files
 *.csv

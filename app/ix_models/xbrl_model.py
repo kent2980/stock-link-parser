@@ -1,5 +1,5 @@
-from app.exception import XbrlListEmptyError
-from app.ix_manager import (
+from exception import XbrlListEmptyError
+from ix_manager import (
     BaseXbrlManager,
     CalLinkManager,
     DefLinkManager,
@@ -9,13 +9,17 @@ from app.ix_manager import (
     QualitativeManager,
     SchemaManager,
 )
-from app.ix_tag import FilePath
+from ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
 
 
 class XBRLModel(BaseXbrlModel):
-    """XBRLファイルを扱うためのクラス"""
+    """XBRLファイルを扱うためのクラス
+    <h3>Attributes:</h3>
+        <p>xbrl_zip_path (str): XBRLファイルのzipファイルのパス</p>
+        <p>output_path (str): スキーマでURLリンクされている、関係XMLファイルの出力先パス</p>
+    """
 
     def __init__(self, xbrl_zip_path, output_path) -> None:
         super().__init__(xbrl_zip_path, output_path)

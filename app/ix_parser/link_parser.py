@@ -1,6 +1,6 @@
 from typing import Optional
 
-from app.ix_tag import LinkArc, LinkBase, LinkLoc, LinkRole, LinkTag
+from ix_tag import LinkArc, LinkBase, LinkLoc, LinkRole, LinkTag
 
 from . import BaseXBRLParser
 
@@ -114,7 +114,6 @@ class BaseLinkParser(BaseXBRLParser):
             # httpが含まれている場合は、attr_valueを変更
             if "http" in attr_value:
                 attr_value = attr_value.split("/Role")[-1]
-
 
             tags = link_tag.find_all(self.arc_tag_name)
             for tag in tags:

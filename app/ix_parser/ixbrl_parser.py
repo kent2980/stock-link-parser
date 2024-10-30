@@ -4,9 +4,9 @@ from decimal import Decimal, InvalidOperation
 from typing import Optional
 from urllib.parse import urlparse
 
-from app.exception.xbrl_parser_exception import DocumentNameTagNotFoundError
-from app.ix_tag import IxContext, IxNonFraction, IxNonNumeric
-from app.utils import Utils
+from exception.xbrl_parser_exception import DocumentNameTagNotFoundError
+from ix_tag import IxContext, IxNonFraction, IxNonNumeric
+from utils import Utils
 
 from . import BaseXBRLParser
 
@@ -54,7 +54,18 @@ class IxbrlParser(BaseXBRLParser):
 
     def __set_report_type(self, xbrl_url):
         """レポートの種類を設定する"""
-        types = ["edjp", "edus", "edif", "edit", "rvdf", "rvfc", "rejp", "rrdf", "rrfc", "efjp"]
+        types = [
+            "edjp",
+            "edus",
+            "edif",
+            "edit",
+            "rvdf",
+            "rvfc",
+            "rejp",
+            "rrdf",
+            "rrfc",
+            "efjp",
+        ]
         if xbrl_url.startswith("http"):
             parse_url = urlparse(xbrl_url)
             file_name = os.path.basename(parse_url.path)
@@ -78,8 +89,15 @@ class IxbrlParser(BaseXBRLParser):
             }
         else:
             try:
-                en_label_tag = self.soup.find(name="ix:nonNumeric", attrs={"name": re.compile(r"^.*TextBlock$")})
-                en_label = en_label_tag.get("name").split(":")[-1].replace("TextBlock", "")
+                en_label_tag = self.soup.find(
+                    name="ix:nonNumeric",
+                    attrs={"name": re.compile(r"^.*TextBlock$")},
+                )
+                en_label = (
+                    en_label_tag.get("name")
+                    .split(":")[-1]
+                    .replace("TextBlock", "")
+                )
             except AttributeError:
                 raise DocumentNameTagNotFoundError(self.basename)
             role = {
@@ -159,21 +177,42 @@ class IxbrlParser(BaseXBRLParser):
                 text = None
 
             # format_strがbooleantrueの場合はtrueに変換
-            text = 'true' if format_str == 'booleantrue' else text
+            text = "true" if format_str == "booleantrue" else text
             # format_strがbooleanfalseの場合はfalseに変換
-            text = 'false' if format_str == 'booleanfalse' else text
+            text = "false" if format_str == "booleanfalse" else text
 
             # _____attr[format_str]
             # textがtrueまたはfalseの場合はformat_strをbooleanに変換
             if text:
-                format_str = 'string' if text else format_str
-                format_str = 'number' if re.search(r'^\d+$', text) else format_str
-                format_str = 'decimal' if re.search(r'^\d+\.\d+$', text) else format_str
-                format_str = 'boolean' if text in ['true', 'false'] else format_str
-                format_str = 'dateyearmonthday' if re.search(r'^\d{4}-\d{2}-\d{2}$', text) else format_str
-                format_str = 'telephone' if re.search(r'^\(?\d{2,4}\)?-?\d{2,4}-?\d{4}$', text) else format_str
-                format_str = 'url' if re.search(r'^https?://[\w/:%#\$&\?\(\)~\.=\+\-]+$', text) else format_str
-
+                format_str = "string" if text else format_str
+                format_str = (
+                    "number" if re.search(r"^\d+$", text) else format_str
+                )
+                format_str = (
+                    "decimal"
+                    if re.search(r"^\d+\.\d+$", text)
+                    else format_str
+                )
+                format_str = (
+                    "boolean" if text in ["true", "false"] else format_str
+                )
+                format_str = (
+                    "dateyearmonthday"
+                    if re.search(r"^\d{4}-\d{2}-\d{2}$", text)
+                    else format_str
+                )
+                format_str = (
+                    "telephone"
+                    if re.search(r"^\(?\d{2,4}\)?-?\d{2,4}-?\d{4}$", text)
+                    else format_str
+                )
+                format_str = (
+                    "url"
+                    if re.search(
+                        r"^https?://[\w/:%#\$&\?\(\)~\.=\+\-]+$", text
+                    )
+                    else format_str
+                )
 
             # 辞書に追加
             inn = IxNonNumeric(
@@ -246,7 +285,9 @@ class IxbrlParser(BaseXBRLParser):
                 if len(numeric) > 0:
                     try:
                         # xx円xx銭の場合は、xx.xxに変換
-                        numeric = numeric.replace("円", ".").replace("銭", "")
+                        numeric = numeric.replace("円", ".").replace(
+                            "銭", ""
+                        )
 
                         # numericのカンマを削除
                         numeric = numeric.replace(",", "")

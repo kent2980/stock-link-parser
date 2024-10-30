@@ -4,9 +4,8 @@ from pathlib import Path
 from uuid import uuid4
 
 import pandas as pd
-
-from app.exception import NotXbrlDirectoryException, NotXbrlTypeException
-from app.utils.utils import Utils
+from exception import NotXbrlDirectoryException, NotXbrlTypeException
+from utils.utils import Utils
 
 
 class BaseXbrlModel:
@@ -25,6 +24,12 @@ class BaseXbrlModel:
 
     @classmethod
     def xbrl_models(cls, xbrl_zip_dirs, output_path):
+        """<p>XBRLファイルのzipファイルが格納されているディレクトリを指定してXBRLModelのインスタンスを生成するジェネレーター</p>
+            <p>多数のXBRLファイルを一括で処理する際に使用してください。</p>
+        <h3>Attributes:</h3>
+            <p>xbrl_zip_dirs (str): XBRLファイルのzipファイルが格納されているディレクトリのパス</p>
+            <p>output_path (str): スキーマでURLリンクされている、関係XMLファイルの出力先パス</p>
+        """
         zip_files = Path(xbrl_zip_dirs).rglob("*.zip")
         for zip_file in zip_files:
             try:
