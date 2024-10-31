@@ -2,7 +2,9 @@ import pprint
 from typing import Dict, List
 
 import requests
+
 from app.api import endpoints as ep
+
 # from app.api.settings import Settings
 from app.ix_models import XBRLModel
 
@@ -11,7 +13,7 @@ from app.ix_models import XBRLModel
 
 class Insert:
     """APIにデータを挿入するためのクラス
-    Args:
+    <h3>Attributes:</h3>
         output_path: 出力先ディレクトリ
     """
 
@@ -100,7 +102,12 @@ class Insert:
         return response
 
     def insert_xbrl_zip(self, zip_path):
-
+        """
+        <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
+        <p>このメソッドは単体のXBRLファイルを解析する際に使用します。</p>
+        <h3>Attributes:</h3>
+            zip_path (str): XBRLファイルのzipファイルのパス
+        """
         model = XBRLModel(zip_path, self.output_path)
         items = model.get_all_items()
         err_endpoints = self.__insert_api_push(items)
@@ -112,6 +119,12 @@ class Insert:
             print(f"Success: {model}")
 
     def insert_xbrl_dir(self, dir_path):
+        """
+        <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
+        <p>このメソッドは複数のXBRLファイルを解析する際に使用します。</p>
+        <h3>Attributes:</h3>
+            dir_path (str): XBRLファイルのディレクトリのパス
+        """
         for model in XBRLModel.xbrl_models(dir_path, self.output_path):
             if model is None:
                 continue
