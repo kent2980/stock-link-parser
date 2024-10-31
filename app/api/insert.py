@@ -2,20 +2,22 @@ import pprint
 from typing import Dict, List
 
 import requests
-from api import endpoints as ep
-from ix_models import XBRLModel
+from app.api import endpoints as ep
+# from app.api.settings import Settings
+from app.ix_models import XBRLModel
 
-from .settings import Settings
-
-settings = Settings()
+# settings = Settings()
 
 
 class Insert:
-    """APIにデータを挿入するためのクラス"""
+    """APIにデータを挿入するためのクラス
+    Args:
+        output_path: 出力先ディレクトリ
+    """
 
     def __init__(self, output_path):
         self.output_path = output_path
-        self.url = settings.API_URL
+        self.url = "https://api.fs-stock.net"
 
     def ix_head_titles(self, data):
         url = self.url + ep.POST_HEAD_TITLES
@@ -98,6 +100,7 @@ class Insert:
         return response
 
     def insert_xbrl_zip(self, zip_path):
+
         model = XBRLModel(zip_path, self.output_path)
         items = model.get_all_items()
         err_endpoints = self.__insert_api_push(items)
