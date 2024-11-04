@@ -2,8 +2,8 @@ from app.api.insert import Insert
 
 if __name__ == "__main__":
     output_oath = (
-        "/home/kent2980/docker_cont/stock-link-parser/output"
+        "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
     )
-    zip_path = "/home/kent2980/doc/tdnet/20241031"
+    zip_path = "/Users/user/Documents/tdnet/xbrl/20241030"
     insert = Insert(output_oath)
     insert.insert_xbrl_dir(zip_path)

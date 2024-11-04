@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from ix_manager import BaseXbrlManager
-from ix_parser import (
+from app.ix_manager import BaseXbrlManager
+from app.ix_parser import (
     BaseLinkParser,
     CalLinkParser,
     DefLinkParser,

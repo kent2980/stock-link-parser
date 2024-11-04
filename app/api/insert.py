@@ -4,11 +4,10 @@ from typing import Dict, List
 import requests
 
 from app.api import endpoints as ep
-
-# from app.api.settings import Settings
+from app.api.settings import Settings
 from app.ix_models import XBRLModel
 
-# settings = Settings()
+settings = Settings()
 
 
 class Insert:
@@ -19,7 +18,7 @@ class Insert:
 
     def __init__(self, output_path):
         self.output_path = output_path
-        self.url = "https://api.fs-stock.net"
+        self.url = settings.API_URL
 
     def ix_head_titles(self, data):
         url = self.url + ep.POST_HEAD_TITLES
@@ -125,17 +124,21 @@ class Insert:
         <h3>Attributes:</h3>
             dir_path (str): XBRLファイルのディレクトリのパス
         """
+        count = 0
         for model in XBRLModel.xbrl_models(dir_path, self.output_path):
             if model is None:
                 continue
             items = model.get_all_items()
             err_endpoints = self.__insert_api_push(items)
             if len(err_endpoints) > 0:
-                print(model)
-                print(f"下記のエンドポイントでエラーが発生しました。")
-                pprint.pprint(err_endpoints)
+                print(
+                    f"Felled: {model} すでにデータが登録されております。"
+                )
             else:
                 print(f"Success: {model}")
+                count += 1
+
+        print(f"Success: {count} files")
 
     def __insert_api_push(self, items: List[Dict[str, any]]):
         err_endpoints = []
@@ -146,6 +149,7 @@ class Insert:
                     response = self.file_path(data)
                     if response.status_code != 200:
                         err_endpoints.append("ix_file_path")
+                        break
                 elif item["key"] == "ix_head_title":
                     response = self.ix_head_titles(data)
                     if response.status_code != 200:

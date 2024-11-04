@@ -4,10 +4,11 @@ from typing import List, Optional
 from uuid import uuid4
 
 import pandas as pd
-from exception import XbrlDirectoryNotFoundError, XbrlListEmptyError
-from ix_parser import BaseXBRLParser, SchemaParser
 from pandas import DataFrame
-from utils import Utils
+
+from app.exception import XbrlDirectoryNotFoundError, XbrlListEmptyError
+from app.ix_parser import BaseXBRLParser, SchemaParser
+from app.utils import Utils
 
 
 class BaseXbrlManager:

@@ -1,9 +1,9 @@
 from typing import List, Optional
 
-from exception import XbrlListEmptyError
-from ix_manager import BaseXbrlManager
-from ix_parser import QualitativeParser
-from ix_tag import QualitativeDocument
+from app.exception import XbrlListEmptyError
+from app.ix_manager import BaseXbrlManager
+from app.ix_parser import QualitativeParser
+from app.ix_tag import QualitativeDocument
 
 
 class QualitativeManager(BaseXbrlManager):

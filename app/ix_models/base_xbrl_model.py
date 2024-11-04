@@ -4,8 +4,10 @@ from pathlib import Path
 from uuid import uuid4
 
 import pandas as pd
-from exception import NotXbrlDirectoryException, NotXbrlTypeException
-from utils.utils import Utils
+
+from app.constants.report_categories import ReportCategories
+from app.exception import NotXbrlDirectoryException, NotXbrlTypeException
+from app.utils.utils import Utils
 
 
 class BaseXbrlModel:
@@ -17,7 +19,7 @@ class BaseXbrlModel:
         self.__output_path = Path(output_path)
         # XBRLファイルを解凍したディレクトリのパスを取得
         self.__directory_path = self.__unzip_xbrl()
-        self.__xbrl_type = self.__xbrl_type()
+        self.__xbrl_category = self.__xbrl_category()
         self.__xbrl_id = str(
             Utils.string_to_uuid(Path(self.xbrl_zip_path).name)
         )
@@ -31,10 +33,12 @@ class BaseXbrlModel:
             <p>output_path (str): スキーマでURLリンクされている、関係XMLファイルの出力先パス</p>
         """
         zip_files = Path(xbrl_zip_dirs).rglob("*.zip")
+        # print(f"zip_files: {len(list(zip_files))}")
         for zip_file in zip_files:
             try:
                 yield cls(zip_file.as_posix(), output_path)
-            except NotXbrlDirectoryException:
+            except NotXbrlDirectoryException as e:
+                print(f"NotXbrlDirectoryException:{zip_file}, {e}")
                 yield None
 
     @property
@@ -74,8 +78,8 @@ class BaseXbrlModel:
         return self.__directory_path
 
     @property
-    def xbrl_type(self):
-        return self.__xbrl_type
+    def xbrl_category(self):
+        return self.__xbrl_category
 
     # zipファイルを解凍するメソッドを追加して解凍したファイルのパスを返す
     def __unzip_xbrl(self) -> str:
@@ -88,34 +92,55 @@ class BaseXbrlModel:
             z.extractall(unzip_path.as_posix())
         return unzip_path.as_posix()
 
-    def __xbrl_type(self):
+    def __xbrl_category(self):
+        """XBRLファイルの報告詳細区分を取得します。
+
+        Returns:
+            str: XBRLファイルの報告詳細区分
+
+        Raises:
+            NotXbrlDirectoryException: ixbrlファイルが存在しない場合
+            NotXbrlDirectoryException: ixbrlファイルが複数存在する場合
+            NotXbrlDirectoryException: ixbrlファイルが存在するが短信サマリーが
+                存在しない場合
+        """
+
+        # レポートカテゴリーを取得
+        report_categories = ReportCategories().field_values()
+        # 決算短信報告書
+        financial_reports = ReportCategories().financial_reports()
+        # 修正報告書
+        revision_reports = ReportCategories().revision_reports()
+        # ディレクトリパスをPathオブジェクトに変換
         directory_path = Path(self.directory_path)
-        # ファイルの末尾が「ixbrl.htm」のファイルを再起的に取得してリストに追加
+        # ファイルの末尾が「ixbrl.htm」のファイルを再起的に取得してリストに格納
         ixbrl_files = list(directory_path.rglob("*ixbrl.htm"))
-        if len(ixbrl_files) == 1:
-            if "sm" in ixbrl_files[0].as_posix():
-                raise NotXbrlDirectoryException(
-                    "短信サマリーのみのXBRLファイルです。財務報告書が存在しません。"
-                )
-            else:
-                return (
-                    ixbrl_files[0].as_posix().split("/")[-1].split("-")[1]
-                )
-        elif len(ixbrl_files) > 1:
-            for ixbrl_file in ixbrl_files:
-                if "sm" in ixbrl_file.as_posix():
-                    return (
-                        ixbrl_file.as_posix()
-                        .split("/")[-1]
-                        .split("-")[1][2:6]
-                    )
-            raise NotXbrlDirectoryException(
-                "ixbrlファイルが複数存在しますが、短信サマリーが存在しません。"
-            )
-        else:
+        if len(ixbrl_files) == 0:
             raise NotXbrlDirectoryException(
                 "ixbrlファイルが存在しません。"
             )
+        else:
+            first_file = ixbrl_files[0].as_posix()
+            for category in report_categories:
+                if category in first_file:
+                    if category in financial_reports:
+                        if len(ixbrl_files) > 1:
+                            return category
+                        else:
+                            raise NotXbrlDirectoryException(
+                                "財務諸表ファイルが存在しません。"
+                            )
+                    elif category in revision_reports:
+                        if len(ixbrl_files) == 1:
+                            return category
+                        else:
+                            raise NotXbrlDirectoryException(
+                                "修正報告書ファイルが複数存在します。"
+                            )
+                    else:
+                        raise NotXbrlDirectoryException(
+                            "ixbrlファイルが存在するが短信サマリーが存在しません。"
+                        )
 
     # ディレクトリ内を再帰的に検索して指定したキーワードがファイル末尾と一致するファイルが存在するかチェックするメソッド
     def __check_xbrl_files_in_dir(self, *keywords):
@@ -127,8 +152,8 @@ class BaseXbrlModel:
         # キーワードに一致するファイルが存在する場合はTrueを返す
         return True
 
-    def _xbrl_type_check(self, xbrl_type, *keywords):
-        if self.xbrl_type != xbrl_type:
+    def _xbrl_category_check(self, xbrl_category, *keywords):
+        if self.xbrl_category != xbrl_category:
             raise NotXbrlTypeException("XBRLファイルの種類が異なります。")
         if self.__check_xbrl_files_in_dir(*keywords):
             raise NotXbrlTypeException("XBRLファイルの構成が異なります。")

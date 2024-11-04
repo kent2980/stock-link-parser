@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ix_tag import LinkArc, LinkBase, LinkLoc, LinkRole, LinkTag
+from app.ix_tag import LinkArc, LinkBase, LinkLoc, LinkRole, LinkTag
 
 from . import BaseXBRLParser
 

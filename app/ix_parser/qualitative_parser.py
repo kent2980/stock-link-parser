@@ -7,8 +7,9 @@ from typing import Optional
 
 import pandas
 import requests
-from ix_parser import BaseXBRLParser
-from ix_tag import QualitativeDocument
+
+from app.ix_parser import BaseXBRLParser
+from app.ix_tag import QualitativeDocument
 
 
 class QualitativeParser(BaseXBRLParser):

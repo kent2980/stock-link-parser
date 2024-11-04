@@ -9,10 +9,11 @@ from uuid import uuid4
 
 import requests
 from bs4 import BeautifulSoup as bs
-from exception import TypeOfXBRLIsDifferent
-from ix_tag import BaseTag, SourceFile
 from pandas import DataFrame
-from utils.utils import Utils
+
+from app.exception import TypeOfXBRLIsDifferent
+from app.ix_tag import BaseTag, SourceFile
+from app.utils.utils import Utils
 
 
 class BaseXBRLParser:

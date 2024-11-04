@@ -1,7 +1,7 @@
 from typing import Dict, List
 
-from exception import XbrlListEmptyError
-from ix_manager import (
+from app.exception import XbrlListEmptyError
+from app.ix_manager import (
     BaseXbrlManager,
     CalLinkManager,
     DefLinkManager,
@@ -11,7 +11,7 @@ from ix_manager import (
     QualitativeManager,
     SchemaManager,
 )
-from ix_tag import FilePath
+from app.ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
 
@@ -176,5 +176,4 @@ class XBRLModel(BaseXbrlModel):
 
         header = self.ix_header().__dict__
 
-        return f" - [{header['securities_code']}] \
-            {header['company_name']} <{header['document_name']}>"
+        return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"

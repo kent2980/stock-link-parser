@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List, Optional
 
-from ix_manager import BaseXbrlManager
-from ix_parser import SchemaParser
+from app.ix_manager import BaseXbrlManager
+from app.ix_parser import SchemaParser
 
 
 class SchemaManager(BaseXbrlManager):
