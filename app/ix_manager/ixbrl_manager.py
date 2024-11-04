@@ -2,6 +2,7 @@ import re
 from typing import List, Optional
 
 from app.exception import XbrlListEmptyError
+from app.exception.xbrl_model_exception import NotXbrlDirectoryException
 from app.exception.xbrl_parser_exception import (
     DocumentNameTagNotFoundError,
 )
@@ -310,12 +311,17 @@ class IXBRLManager(BaseXbrlManager):
             # endregion
 
         # 連結・非連結の場合の正規表現を設定
-        if re.search(r"(?=.*\(連結\).*)", company_name):  # 連結の場合
-            consolidated_pattern = r"(?=.*_ConsolidatedMember.*)"
-        elif re.search(r"(?=.*\(非連結\).*)", company_name):  # 個別の場合
-            consolidated_pattern = r"(?=.*_NonConsolidatedMember.*)"
+        if company_name:
+            if re.search(r"(?=.*\(連結\).*)", company_name):  # 連結の場合
+                consolidated_pattern = r"(?=.*_ConsolidatedMember.*)"
+            elif re.search(
+                r"(?=.*\(非連結\).*)", company_name
+            ):  # 個別の場合
+                consolidated_pattern = r"(?=.*_NonConsolidatedMember.*)"
+            else:
+                consolidated_pattern = r""
         else:
-            consolidated_pattern = r""
+            raise NotXbrlDirectoryException("会社名が取得できません。")
 
         # ix_non_fractionからデータを取得
         non_fraction_lists: List[List[IxNonFraction]] = (

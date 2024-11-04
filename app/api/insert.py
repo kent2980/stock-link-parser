@@ -1,4 +1,5 @@
 import pprint
+from pathlib import Path
 from typing import Dict, List
 
 import requests
@@ -8,6 +9,7 @@ from app.api.settings import Settings
 from app.ix_models import XBRLModel
 
 settings = Settings()
+from tqdm import tqdm
 
 
 class Insert:
@@ -124,21 +126,26 @@ class Insert:
         <h3>Attributes:</h3>
             dir_path (str): XBRLファイルのディレクトリのパス
         """
-        count = 0
-        for model in XBRLModel.xbrl_models(dir_path, self.output_path):
-            if model is None:
-                continue
-            items = model.get_all_items()
-            err_endpoints = self.__insert_api_push(items)
-            if len(err_endpoints) > 0:
-                print(
-                    f"Felled: {model} すでにデータが登録されております。"
-                )
-            else:
-                print(f"Success: {model}")
-                count += 1
 
-        print(f"Success: {count} files")
+        models_length = len(list(Path(dir_path).rglob("*.zip")))
+        count = 0
+
+        with tqdm(total=models_length) as pbar:
+            for model in XBRLModel.xbrl_models(dir_path, self.output_path):
+                if model is None:
+                    pbar.update(1)
+                    continue
+                items = model.get_all_items()
+                err_endpoints = self.__insert_api_push(items)
+                if len(err_endpoints) > 0:
+                    pbar.write(
+                        f"Felled: {model} すでにデータが登録されております。"
+                    )
+                else:
+                    pbar.write(f"Success: {model}")
+                    count += 1
+
+                pbar.update(1)
 
     def __insert_api_push(self, items: List[Dict[str, any]]):
         err_endpoints = []

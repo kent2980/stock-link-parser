@@ -33,7 +33,6 @@ class BaseXbrlModel:
             <p>output_path (str): スキーマでURLリンクされている、関係XMLファイルの出力先パス</p>
         """
         zip_files = Path(xbrl_zip_dirs).rglob("*.zip")
-        # print(f"zip_files: {len(list(zip_files))}")
         for zip_file in zip_files:
             try:
                 yield cls(zip_file.as_posix(), output_path)
@@ -124,12 +123,7 @@ class BaseXbrlModel:
             for category in report_categories:
                 if category in first_file:
                     if category in financial_reports:
-                        if len(ixbrl_files) > 1:
-                            return category
-                        else:
-                            raise NotXbrlDirectoryException(
-                                "財務諸表ファイルが存在しません。"
-                            )
+                        return category
                     elif category in revision_reports:
                         if len(ixbrl_files) == 1:
                             return category
