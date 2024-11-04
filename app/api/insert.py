@@ -9,6 +9,8 @@ from app.api.settings import Settings
 from app.ix_models import XBRLModel
 
 settings = Settings()
+import gc
+
 from tqdm import tqdm
 
 
@@ -146,6 +148,9 @@ class Insert:
                     count += 1
 
                 pbar.update(1)
+                gc.collect()
+
+            pbar.write(f"Success: {count}件のXBRLファイルを登録しました。")
 
     def __insert_api_push(self, items: List[Dict[str, any]]):
         err_endpoints = []
