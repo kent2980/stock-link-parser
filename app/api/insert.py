@@ -107,6 +107,18 @@ class Insert:
         response = requests.post(url, json={"data": data})
         return response
 
+    def set_head_active(self, xbrl_id):
+        url = self.url + ep.UPDATE_HEAD_ACTIVE
+        response = requests.put(url, params={"xbrl_id": xbrl_id})
+        return response
+
+    def is_active_head(self, xbrl_id):
+        url = self.url + ep.IS_ACTIVE_HEAD
+        response = requests.get(url, params={"xbrl_id": xbrl_id})
+        if response.status_code == 200:
+            return response.json()
+        return False
+
     def insert_xbrl_zip(self, zip_path):
         """
         <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
@@ -137,22 +149,17 @@ class Insert:
         with tqdm(total=len(zip_paths)) as pbar:
             for zip_path in zip_paths:
                 xbrl_id = Utils.string_to_uuid(Path(zip_path).name)
-                response = requests.get(
-                    self.url + ep.IS_CHECK_MODEL,
-                    params={"xbrl_id": xbrl_id},
-                )
-                if response.status_code == 200:
-                    if response.json():
-                        pbar.write(f"Already exists: {zip_path}")
-                        pbar.update(1)
-                        continue
+                if self.is_active_head(xbrl_id):
+                    pbar.write(f"Already exists: {zip_path}")
+                    pbar.update(1)
+                    continue
                 else:
                     try:
                         model = XBRLModel(
                             zip_path.as_posix(), self.output_path
                         )
                         items = model.get_all_items()
-                        is_push = self.__insert_api_push(items)
+                        is_push = self.__insert_api_push(items, xbrl_id)
                         if is_push:
                             pbar.write(f"Success: {model}")
                         else:
@@ -162,7 +169,9 @@ class Insert:
                     pbar.update(1)
                     gc.collect()
 
-    def __insert_api_push(self, items: List[Dict[str, any]]) -> bool:
+    def __insert_api_push(
+        self, items: List[Dict[str, any]], xbrl_id: str
+    ) -> bool:
         for item in items:
             response = None
             if item:
@@ -203,5 +212,10 @@ class Insert:
                 if response:
                     if response.status_code != 200:
                         return False
+
+        response = self.set_head_active(xbrl_id)
+
+        if response.status_code != 200:
+            return False
 
         return True

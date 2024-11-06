@@ -32,11 +32,19 @@ POST_FILE_PATH = "/xbrl/ix/file_path/"
 POST_QUALITATIVE = "/xbrl/qualitative/list/"
 """ QUALITATIVEテーブルに複数データを追加するエンドポイント """
 
+# UPDATE エンドポイント
+UPDATE_HEAD_ACTIVE = "/xbrl/ix/head/active/"
+""" IX_HEAD_TITLEテーブルを有効化するエンドポイント """
+
 # GET エンドポイント
 IS_CHECK_MODEL = "/xbrl/check/model/"
 """ すべてのテーブルにXBRL_IDが存在するか確認するエンドポイント """
 IS_FILE_PATH = "/xbrl/is/file_path/"
 """ IX_FILE_PATHテーブルにデータが存在するか確認するエンドポイント """
+SOURCE_FILE_ID_LIST = "/xbrl/source/id_list/"
+""" SOURCEテーブルのFILE_IDを取得するエンドポイント """
+IS_ACTIVE_HEAD = "/xbrl/ix/head/is_active/"
+""" IX_HEAD_TITLEテーブルに有効なデータが存在するか確認するエンドポイント """
 
 # DELETE エンドポイント
 DELETE_FILE_PATH = "/xbrl/ix/file_path/delete/"
@@ -65,3 +73,9 @@ DELETE_SCHEMAS = "/xbrl/schema/linkbase/delete/"
 """ SCHEMAテーブルのデータを削除するエンドポイント """
 DELETE_QUALITATIVE = "/xbrl/qualitative/delete/"
 """ QUALITATIVEテーブルのデータを削除するエンドポイント """
+DELETE_LABEL_LOCS = "/xbrl/link/lab/loc/delete/"
+""" LINK_LABEL_LOCテーブルのデータを削除するエンドポイント """
+DELETE_LABEL_ARCS = "/xbrl/link/lab/arc/delete/"
+""" LINK_LABEL_ARCテーブルのデータを削除するエンドポイント """
+DELETE_LABEL_VALUES = "/xbrl/link/lab/value/delete/"
+""" LINK_LABEL_VALUEテーブルのデータを削除するエンドポイント """
