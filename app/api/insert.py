@@ -7,11 +7,14 @@ import requests
 from app.api import endpoints as ep
 from app.api.settings import Settings
 from app.ix_models import XBRLModel
+from app.utils.utils import Utils
 
 settings = Settings()
 import gc
 
 from tqdm import tqdm
+
+from app.exception.xbrl_model_exception import NotXbrlDirectoryException
 
 
 class Insert:
@@ -20,9 +23,9 @@ class Insert:
         output_path: 出力先ディレクトリ
     """
 
-    def __init__(self, output_path):
+    def __init__(self, output_path: str):
         self.output_path = output_path
-        self.url = settings.API_URL
+        self.url = settings.API_URL + "/api/v1"
 
     def ix_head_titles(self, data):
         url = self.url + ep.POST_HEAD_TITLES
@@ -129,100 +132,76 @@ class Insert:
             dir_path (str): XBRLファイルのディレクトリのパス
         """
 
-        models_length = len(list(Path(dir_path).rglob("*.zip")))
-        count = 0
+        zip_paths = list(Path(dir_path).rglob("*.zip"))
 
-        with tqdm(total=models_length) as pbar:
-            for model in XBRLModel.xbrl_models(dir_path, self.output_path):
-                if model is None:
-                    pbar.update(1)
-                    continue
-                items = model.get_all_items()
-                err_endpoints = self.__insert_api_push(items)
-                if len(err_endpoints) > 0:
-                    pbar.write(
-                        f"Felled: {model} すでにデータが登録されております。"
-                    )
+        with tqdm(total=len(zip_paths)) as pbar:
+            for zip_path in zip_paths:
+                xbrl_id = Utils.string_to_uuid(Path(zip_path).name)
+                response = requests.get(
+                    self.url + ep.IS_CHECK_MODEL,
+                    params={"xbrl_id": xbrl_id},
+                )
+                if response.status_code == 200:
+                    if response.json():
+                        pbar.write(f"Already exists: {zip_path}")
+                        pbar.update(1)
+                        continue
                 else:
-                    pbar.write(f"Success: {model}")
-                    count += 1
+                    try:
+                        model = XBRLModel(
+                            zip_path.as_posix(), self.output_path
+                        )
+                        items = model.get_all_items()
+                        is_push = self.__insert_api_push(items)
+                        if is_push:
+                            pbar.write(f"Success: {model}")
+                        else:
+                            pbar.write(f"Error: {model}")
+                    except NotXbrlDirectoryException:
+                        pbar.write(f"無効なXBRLファイル: {zip_path}")
+                    pbar.update(1)
+                    gc.collect()
 
-                pbar.update(1)
-                gc.collect()
-
-            pbar.write(f"Success: {count}件のXBRLファイルを登録しました。")
-
-    def __insert_api_push(self, items: List[Dict[str, any]]):
-        err_endpoints = []
+    def __insert_api_push(self, items: List[Dict[str, any]]) -> bool:
         for item in items:
+            response = None
             if item:
                 data = item["item"]
                 if item["key"] == "ix_file_path":
                     response = self.file_path(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("ix_file_path")
-                        break
                 elif item["key"] == "ix_head_title":
                     response = self.ix_head_titles(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("ix_head_title")
                 elif item["key"].endswith("source_file"):
                     response = self.sources(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("source_file")
                 elif item["key"] == "sc_linkbase_ref":
                     response = self.schemas(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("sc_linkbase_ref")
                 elif item["key"] == "ix_non_numeric":
                     response = self.ix_non_numerics(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("ix_non_numeric")
                 elif item["key"] == "ix_non_fraction":
                     response = self.ix_non_fractions(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("ix_non_fraction")
                 elif item["key"] == "lab_link_locs":
                     response = self.label_locs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("lab_link_locs")
                 elif item["key"] == "lab_link_arcs":
                     response = self.label_arcs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("lab_link_arcs")
                 elif item["key"] == "lab_link_values":
                     response = self.label_values(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("lab_link_values")
                 elif item["key"] == "cal_link_locs":
                     response = self.cal_locs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("cal_link_locs")
                 elif item["key"] == "cal_link_arcs":
                     response = self.cal_arcs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("cal_link_arcs")
                 elif item["key"] == "pre_link_locs":
                     response = self.pre_locs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("pre_link_locs")
                 elif item["key"] == "pre_link_arcs":
                     response = self.pre_arcs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("pre_link_arcs")
                 elif item["key"] == "def_link_locs":
                     response = self.def_locs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("def_link_locs")
                 elif item["key"] == "def_link_arcs":
                     response = self.def_arcs(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("def_link_arcs")
                 elif item["key"] == "qualitative_info":
                     response = self.qualitative(data)
-                    if response.status_code != 200:
-                        err_endpoints.append("qualitative_info")
-                else:
-                    continue
 
-        return err_endpoints
+                if response:
+                    if response.status_code != 200:
+                        return False
+
+        return True

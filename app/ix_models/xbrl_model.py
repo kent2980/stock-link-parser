@@ -115,14 +115,17 @@ class XBRLModel(BaseXbrlModel):
         return self.qualitative_manager
 
     def get_all_manager(self):
+        """XBRLファイルに含まれる全てのマネージャを取得します"""
         all_data = {
+            # テーブルの外部キー制約に沿ってキーを追加してください。
+            # ...
             "ix": self.get_ixbrl(),
             "lab": self.get_label(),
             "cal": self.get_cal_link(),
             "def": self.get_def_link(),
             "pre": self.get_pre_link(),
-            "schema": self.get_schema(),
             "qualitative": self.get_qualitative(),
+            "schema": self.get_schema(),  # チェック機能のために必ず最後に追加してください。
         }
         # all_dataから値がNoneのものを削除
         items = {k: v for k, v in all_data.items() if v is not None}
@@ -139,7 +142,7 @@ class XBRLModel(BaseXbrlModel):
         """
         lists = []
 
-        file_path = {
+        file_path = {  # ファイルパスを追加
             "key": "ix_file_path",
             "item": self.get_file_path().model_dump(),
         }
