@@ -17,9 +17,9 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        output_oath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        zip_path = "/Users/user/Documents/tdnet/xbrl/20241031"
-        insert = Insert(output_oath)
+        outputPath = "/home/kent2980/docker_cont/stock-link-parser/output"
+        zip_path = "/home/kent2980/doc/tdnet/20241106"
+        insert = Insert(outputPath)
         insert.insert_xbrl_dir(zip_path)
 
     finally:
