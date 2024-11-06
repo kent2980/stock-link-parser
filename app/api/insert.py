@@ -1,20 +1,22 @@
+import gc
 import pprint
 from pathlib import Path
 from typing import Dict, List
 
 import requests
+from pydantic_core import ValidationError
+from tqdm import tqdm
 
 from app.api import endpoints as ep
 from app.api.settings import Settings
+from app.exception.xbrl_model_exception import NotXbrlDirectoryException
 from app.ix_models import XBRLModel
 from app.utils.utils import Utils
 
-settings = Settings()
-import gc
-
-from tqdm import tqdm
-
-from app.exception.xbrl_model_exception import NotXbrlDirectoryException
+try:
+    settings = Settings()
+except ValidationError as e:
+    settings = None
 
 
 class Insert:
@@ -25,7 +27,10 @@ class Insert:
 
     def __init__(self, output_path: str):
         self.output_path = output_path
-        self.url = settings.API_URL + "/api/v1"
+        if settings:
+            self.url = settings.API_URL + "/api/v1"
+        else:
+            self.url = "https://api.fs-stock.net/api/v1"
 
     def ix_head_titles(self, data):
         url = self.url + ep.POST_HEAD_TITLES
