@@ -179,8 +179,8 @@ class XBRLModel(BaseXbrlModel):
             head_item_key=self.head_item_key, path=self.xbrl_zip_path
         )
 
-    def __str__(self) -> str:
+    # def __str__(self) -> str:
 
-        header = self.ix_header().__dict__
+    #     header = self.ix_header().__dict__
 
-        return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"
+    #     return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"

@@ -321,8 +321,6 @@ class IXBRLManager(BaseXbrlManager):
                 consolidated_pattern = r"(?=.*_NonConsolidatedMember.*)"
             else:
                 consolidated_pattern = r""
-        else:
-            raise NotXbrlDirectoryException("会社名が取得できません。")
 
         # ix_non_fractionからデータを取得
         non_fraction_lists: List[List[IxNonFraction]] = (
@@ -414,13 +412,13 @@ class IXBRLManager(BaseXbrlManager):
             dividend_increase_rate = None
         except TypeError:
             dividend_increase_rate = None
-        if re.search(
-            r"(?=.*ed.*)|(?=.*rvdf.*)", report_type
-        ):  # 決算短信か配当予想修正の場合
-            if not forecast_total_dividend:
-                dividend_increase_rate = "未公表"
-            elif forecast_total_dividend == "0":
-                dividend_increase_rate = "無配"
+        # if re.search(
+        #     r"(?=.*ed.*)|(?=.*rvdf.*)", report_type
+        # ):  # 決算短信か配当予想修正の場合
+        #     if not forecast_total_dividend:
+        #         dividend_increase_rate = "未公表"
+        #     elif forecast_total_dividend == "0":
+        #         dividend_increase_rate = "無配"
         # endregion
 
         ix_header = IxHeader(
@@ -433,7 +431,7 @@ class IXBRLManager(BaseXbrlManager):
         self.__ix_header = header
 
         self._set_items(
-            id=ix_header.head_item_key,
+            id=self.head_item_key,
             key="ix_head_title",
             items=header,
             sort_position=0,
