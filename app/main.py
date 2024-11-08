@@ -4,7 +4,9 @@ import sys
 from app.api.insert import Insert
 
 # ロックファイルのパスを指定
-lock_file = "/home/kent2980/docker_cont/stock-link-parser/script.lock"
+lock_file = (
+    "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/script.lock"
+)
 
 if __name__ == "__main__":
     # ロックファイルが存在するか確認

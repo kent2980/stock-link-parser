@@ -66,36 +66,7 @@ class IxNonFraction(BaseTag):
 class IxHeader(BaseTag):
     """iXBRLのヘッダー情報を格納するクラス"""
 
-    company_name: Optional[str] = Field(default=None)
-    securities_code: Optional[str] = Field(default=None)
-    document_name: Optional[str] = Field(default=None)
-    reporting_date: Optional[str] = Field(default=None)
-    current_period: Optional[str] = Field(default=None)
     xbrl_id: Optional[str] = Field(default=None)
-    report_type: Optional[str] = Field(default=None)
-    listed_market: Optional[str] = Field(default=None)
-    market_section: Optional[str] = Field(default=None)
-    url: Optional[str] = Field(default=None)
-    is_bs: Optional[bool] = Field(default=None)
-    is_pl: Optional[bool] = Field(default=None)
-    is_cf: Optional[bool] = Field(default=None)
-    is_ci: Optional[bool] = Field(default=None)
-    is_sce: Optional[bool] = Field(default=None)
-    is_sfp: Optional[bool] = Field(default=None)
-    fiscal_year_end: Optional[str] = Field(default=None)
-    tel: Optional[str] = Field(default=None)
-    is_dividend_revision: Optional[bool] = Field(
-        default=None, description="配当の修正"
-    )
-    dividend_increase_rate: Optional[str] = Field(
-        default=None, description="増配率"
-    )
-    is_earnings_forecast_revision: Optional[bool] = Field(
-        default=None, description="業績予想の修正"
-    )
-    forecast_ordinary_income_growth_rate: Optional[str] = Field(
-        default=None, description="予想経常利益増益率"
-    )
 
     def __init__(self, **data):
         super().__init__(**data)

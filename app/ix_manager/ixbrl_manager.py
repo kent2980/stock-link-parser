@@ -221,6 +221,7 @@ class IXBRLManager(BaseXbrlManager):
 
         # 非数値情報からマッピングとデータ取得処理を行う
         for item in non_numeric_list:
+            continue
             # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
 
             # region 基本情報の取得
@@ -333,6 +334,7 @@ class IXBRLManager(BaseXbrlManager):
 
         # 非分数情報からマッピングとデータ取得処理を行う
         for item in non_fraction_list:
+            continue
             # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
 
             # region 経営成績情報の取得
@@ -422,28 +424,7 @@ class IXBRLManager(BaseXbrlManager):
         # endregion
 
         ix_header = IxHeader(
-            company_name=company_name,
-            securities_code=securities_code,
-            document_name=document_name,
-            reporting_date=reporting_date,
-            current_period=current_period,
-            xbrl_id=xbrl_id,
-            report_type=report_type,
-            listed_market=listed_market,
-            market_section=market_section,
-            url=url,
-            is_bs=is_bs,
-            is_pl=is_pl,
-            is_cf=is_cf,
-            is_ci=is_ci,
-            is_sce=is_sce,
-            is_sfp=is_sfp,
-            fiscal_year_end=fiscal_year_end,
-            tel=tel,
-            is_dividend_revision=is_dividend_revision,
-            dividend_increase_rate=dividend_increase_rate,
-            is_earnings_forecast_revision=is_earnings_forecast_revision,
-            forecast_ordinary_income_growth_rate=forecast_ordinary_income_growth_rate,
+            xbrl_id=self.xbrl_id,
             # ...機能を追加する際は、ここに新しい変数を追加してください。
         )
 
