@@ -112,14 +112,18 @@ class Insert:
         response = requests.post(url, json={"data": data})
         return response
 
-    def set_head_active(self, xbrl_id):
+    def set_head_active(self, head_item_key):
         url = self.url + ep.UPDATE_HEAD_ACTIVE
-        response = requests.put(url, params={"xbrl_id": xbrl_id})
+        response = requests.put(
+            url, params={"head_item_key": head_item_key}
+        )
         return response
 
-    def is_active_head(self, xbrl_id):
+    def is_active_head(self, head_item_key):
         url = self.url + ep.IS_ACTIVE_HEAD
-        response = requests.get(url, params={"xbrl_id": xbrl_id})
+        response = requests.get(
+            url, params={"head_item_key": head_item_key}
+        )
         if response.status_code == 200:
             return response.json()
         return False
@@ -153,8 +157,8 @@ class Insert:
 
         with tqdm(total=len(zip_paths)) as pbar:
             for zip_path in zip_paths:
-                xbrl_id = Utils.string_to_uuid(Path(zip_path).name)
-                if self.is_active_head(xbrl_id):
+                head_item_key = Utils.string_to_uuid(Path(zip_path).name)
+                if self.is_active_head(head_item_key):
                     pbar.write(f"Already exists: {zip_path}")
                     pbar.update(1)
                     continue
@@ -164,7 +168,9 @@ class Insert:
                             zip_path.as_posix(), self.output_path
                         )
                         items = model.get_all_items()
-                        is_push = self.__insert_api_push(items, xbrl_id)
+                        is_push = self.__insert_api_push(
+                            items, head_item_key
+                        )
                         if is_push:
                             pbar.write(f"Success: {model}")
                         else:
@@ -175,7 +181,7 @@ class Insert:
                     gc.collect()
 
     def __insert_api_push(
-        self, items: List[Dict[str, any]], xbrl_id: str
+        self, items: List[Dict[str, any]], head_item_key: str
     ) -> bool:
         for item in items:
             response = None
@@ -218,7 +224,7 @@ class Insert:
                     if response.status_code != 200:
                         return False
 
-        response = self.set_head_active(xbrl_id)
+        response = self.set_head_active(head_item_key)
 
         if response.status_code != 200:
             return False

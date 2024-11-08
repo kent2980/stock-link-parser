@@ -11,9 +11,12 @@ class SchemaParser(BaseXBRLParser):
     """スキーマファイルを解析するクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名を検証
         self._assert_valid_basename(".xsd")
@@ -28,7 +31,7 @@ class SchemaParser(BaseXBRLParser):
                 schema_location=tag.get("schemaLocation"),
                 name_space=tag.get("namespace"),
                 xbrl_type=self.xbrl_type,
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 source_file_id=self.source_file_id,
             )
 
@@ -53,7 +56,7 @@ class SchemaParser(BaseXBRLParser):
                 else:
                     source_file_id = str(
                         Utils.string_to_uuid(
-                            f"{self.xbrl_id}{Path(xlink_href).name}"
+                            f"{self.head_item_key}{Path(xlink_href).name}"
                         )
                     )
 
@@ -67,7 +70,7 @@ class SchemaParser(BaseXBRLParser):
                 xlink_role=tag.get("xlink:role"),
                 xlink_arcrole=tag.get("xlink:arcrole"),
                 xbrl_type=self.xbrl_type,
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 source_file_id=self.source_file_id,
                 href_source_file_id=source_file_id,
             )
@@ -94,7 +97,7 @@ class SchemaParser(BaseXBRLParser):
                 type=tag.get("type"),
                 abstract=tag.get("abstract"),
                 xbrl_type=self.xbrl_type,
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 source_file_id=self.source_file_id,
             )
 

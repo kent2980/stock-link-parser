@@ -13,9 +13,9 @@ class QualitativeManager(BaseXbrlManager):
     """
 
     def __init__(
-        self, directory_path, xbrl_id: Optional[str] = None
+        self, directory_path, head_item_key: Optional[str] = None
     ) -> None:
-        super().__init__(directory_path, xbrl_id=xbrl_id)
+        super().__init__(directory_path, head_item_key=head_item_key)
         # self._set_htmlbase_files("qualitative")
 
         # if len(self.related_files) == 0:
@@ -39,7 +39,7 @@ class QualitativeManager(BaseXbrlManager):
         for file in self.files:
             if file.endswith("qualitative.htm"):
                 parser = QualitativeParser(
-                    xbrl_url=file, xbrl_id=self.xbrl_id
+                    xbrl_url=file, head_item_key=self.head_item_key
                 )
                 parsers.append(parser)
 

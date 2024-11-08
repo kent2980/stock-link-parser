@@ -38,7 +38,7 @@ UPDATE_HEAD_ACTIVE = "/xbrl/ix/head/active/"
 
 # GET エンドポイント
 IS_CHECK_MODEL = "/xbrl/check/model/"
-""" すべてのテーブルにXBRL_IDが存在するか確認するエンドポイント """
+""" すべてのテーブルにhead_item_keyが存在するか確認するエンドポイント """
 IS_FILE_PATH = "/xbrl/is/file_path/"
 """ IX_FILE_PATHテーブルにデータが存在するか確認するエンドポイント """
 SOURCE_FILE_ID_LIST = "/xbrl/source/id_list/"

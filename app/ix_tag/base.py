@@ -36,19 +36,19 @@ class SourceFile(BaseTag):
     id: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     type: Optional[str] = Field(default=None)
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     url: Optional[str] = Field(default=None)
 
     def __str__(self) -> str:
-        return f"{self.name},{self.type},{self.xbrl_id},{self.url}"
+        return f"{self.name},{self.type},{self.head_item_key},{self.url}"
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.name and self.xbrl_id:
+        if self.name and self.head_item_key:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.xbrl_id}",
+                    f"{self.name}_{self.head_item_key}",
                 )
             )
 
@@ -56,17 +56,17 @@ class SourceFile(BaseTag):
 class FilePath(BaseTag):
     """ファイルパス情報を格納するクラス"""
 
-    xbrl_id: Optional[str] = Field(
+    head_item_key: Optional[str] = Field(
         default=None, max_length=36, min_length=36
     )
     path: Optional[str] = Field(default=None)
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.xbrl_id and self.path:
+        if self.head_item_key and self.path:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xbrl_id}_{self.path}",
+                    f"{self.head_item_key}_{self.path}",
                 )
             )

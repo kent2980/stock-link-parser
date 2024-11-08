@@ -9,7 +9,7 @@ from .base import BaseTag
 class IxNonNumeric(BaseTag):
     """非数値タグの情報を格納するクラス"""
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     context: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     xsi_nil: Optional[bool] = Field(default=None)
@@ -23,11 +23,11 @@ class IxNonNumeric(BaseTag):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.name and self.context and self.xbrl_id:
+        if self.name and self.context and self.head_item_key:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.context}_{self.xbrl_id}",
+                    f"{self.name}_{self.context}_{self.head_item_key}",
                 )
             )
 
@@ -35,7 +35,7 @@ class IxNonNumeric(BaseTag):
 class IxNonFraction(BaseTag):
     """非分数タグの情報を格納するクラス"""
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     context: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     unit_ref: Optional[str] = Field(default=None)
@@ -54,11 +54,11 @@ class IxNonFraction(BaseTag):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.name and self.context and self.xbrl_id:
+        if self.name and self.context and self.head_item_key:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.context}_{self.xbrl_id}",
+                    f"{self.name}_{self.context}_{self.head_item_key}",
                 )
             )
 
@@ -66,27 +66,13 @@ class IxNonFraction(BaseTag):
 class IxHeader(BaseTag):
     """iXBRLのヘッダー情報を格納するクラス"""
 
-    xbrl_id: Optional[str] = Field(default=None)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        if (
-            self.company_name
-            and self.securities_code
-            and self.document_name
-        ):
-            self.item_key = str(
-                uuid.uuid5(
-                    uuid.NAMESPACE_DNS,
-                    f"{self.company_name}_{self.securities_code}_{self.document_name}_{self.xbrl_id}",
-                )
-            )
+    item_key: Optional[str] = Field(default=None)
 
 
 class IxContext(BaseTag):
     """コンテキスト情報を格納するクラス"""
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     context_id: Optional[str] = Field(default=None)
     period: Optional[dict] = Field(default=None)
     scenario: Optional[list] = Field(default=None)
@@ -94,10 +80,10 @@ class IxContext(BaseTag):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.context_id and self.xbrl_id:
+        if self.context_id and self.head_item_key:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.context_id}_{self.xbrl_id}",
+                    f"{self.context_id}_{self.head_item_key}",
                 )
             )

@@ -13,9 +13,9 @@ class LabelManager(BaseXbrlManager):
         directory_path,
         output_path,
         lang="jp",
-        xbrl_id: Optional[str] = None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(directory_path, xbrl_id=xbrl_id)
+        super().__init__(directory_path, head_item_key=head_item_key)
         self.__output_path = output_path
         self.__lang = None
         self.__link_labels = None
@@ -78,7 +78,9 @@ class LabelManager(BaseXbrlManager):
         parsers: List[LabelParser] = []
         for _, row in self.related_files.iterrows():
             parser = LabelParser(
-                row["xlink_href"], self.output_path, xbrl_id=self.xbrl_id
+                row["xlink_href"],
+                self.output_path,
+                head_item_key=self.head_item_key,
             )
             parsers.append(parser)
 

@@ -16,9 +16,12 @@ class QualitativeParser(BaseXBRLParser):
     """XBRLドキュメントから定性データを解析するためのクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
         # ファイル名を検証
         self._assert_valid_basename("qualitative.htm")
 
@@ -94,9 +97,9 @@ class QualitativeParser(BaseXBRLParser):
                     continue
                 # endregion
 
-                # xbrl_id,text,source_file_idから固有のIDを生成
+                # head_item_key,text,source_file_idから固有のIDを生成
                 currentId = get_hash_id(
-                    self.xbrl_id, text, self.source_file_id, index
+                    self.head_item_key, text, self.source_file_id, index
                 )
 
                 # テキストのタイプとIDを設定
@@ -113,7 +116,7 @@ class QualitativeParser(BaseXBRLParser):
                             currentId=currentId,
                             parentId=parentId,
                             content=text,
-                            xbrl_id=self.xbrl_id,
+                            head_item_key=self.head_item_key,
                             source_file_id=self.source_file_id,
                             type=type,
                         )
@@ -201,11 +204,11 @@ def scraping_text_transform(text):
     return text
 
 
-def get_hash_id(xbrl_id, text, source_file_id, index):
+def get_hash_id(head_item_key, text, source_file_id, index):
     """固有のIDを生成する関数"""
 
     hash_object = hashlib.md5(
-        f"{xbrl_id}{text}{source_file_id}{str(index)}".encode()
+        f"{head_item_key}{text}{source_file_id}{str(index)}".encode()
     )
     return str(uuid.UUID(hash_object.hexdigest()))
 

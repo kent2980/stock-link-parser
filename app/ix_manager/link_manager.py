@@ -17,10 +17,10 @@ class BaseLinkManager(BaseXbrlManager):
         directory_path,
         output_path,
         document_type=None,
-        xbrl_id: Optional[str] = None,
+        head_item_key: Optional[str] = None,
         class_name: Optional[str] = None,
     ):
-        super().__init__(directory_path, xbrl_id=xbrl_id)
+        super().__init__(directory_path, head_item_key=head_item_key)
 
         # プロパティの初期化
         self.__output_path = output_path
@@ -77,7 +77,9 @@ class BaseLinkManager(BaseXbrlManager):
         parsers: List[BaseLinkParser] = []
         for _, row in self.related_files.iterrows():
             parser = self.parser(
-                row["xlink_href"], self.output_path, xbrl_id=self.xbrl_id
+                row["xlink_href"],
+                self.output_path,
+                head_item_key=self.head_item_key,
             )
             parsers.append(parser)
 
@@ -181,13 +183,13 @@ class CalLinkManager(BaseLinkManager):
         directory_path,
         output_path,
         document_type=None,
-        xbrl_id: Optional[str] = None,
+        head_item_key: Optional[str] = None,
     ):
         super().__init__(
             directory_path,
             output_path,
             document_type,
-            xbrl_id=xbrl_id,
+            head_item_key=head_item_key,
             class_name="cal",
         )
         self.role = "calculationLinkbaseRef"
@@ -212,13 +214,13 @@ class DefLinkManager(BaseLinkManager):
         directory_path,
         output_path,
         document_type=None,
-        xbrl_id: Optional[str] = None,
+        head_item_key: Optional[str] = None,
     ):
         super().__init__(
             directory_path,
             output_path,
             document_type,
-            xbrl_id=xbrl_id,
+            head_item_key=head_item_key,
             class_name="def",
         )
         self.role = "definitionLinkbaseRef"
@@ -243,13 +245,13 @@ class PreLinkManager(BaseLinkManager):
         directory_path,
         output_path,
         document_type=None,
-        xbrl_id: Optional[str] = None,
+        head_item_key: Optional[str] = None,
     ):
         super().__init__(
             directory_path,
             output_path,
             document_type,
-            xbrl_id=xbrl_id,
+            head_item_key=head_item_key,
             class_name="pre",
         )
         self.role = "presentationLinkbaseRef"

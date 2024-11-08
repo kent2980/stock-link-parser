@@ -19,7 +19,7 @@ class QualitativeDocument(BaseTag):
     )
     type: Optional[str] = Field(default=None, description="タイプ")
     order: Optional[int] = Field(default=None, description="順番")
-    xbrl_id: Optional[str] = Field(
+    head_item_key: Optional[str] = Field(
         default=None, max_length=36, description="XBRLの固有ID"
     )
     source_file_id: Optional[str] = Field(
@@ -36,6 +36,6 @@ class QualitativeDocument(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.content}_{self.xbrl_id}_{self.source_file_id}_{self.currentId}",
+                    f"{self.content}_{self.head_item_key}_{self.source_file_id}_{self.currentId}",
                 )
             )

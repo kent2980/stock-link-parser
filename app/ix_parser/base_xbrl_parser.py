@@ -20,7 +20,10 @@ class BaseXBRLParser:
     """XBRLを解析する基底クラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
 
         # urlの検証を行います
@@ -33,14 +36,14 @@ class BaseXBRLParser:
         self.__xbrl_type = None  # XbrlType(fr or sm)
         self.__soup = None  # BeautifulSoup
         self.__data: Optional[List[BaseTag]] = None  # 解析結果のデータ
-        self.__xbrl_id = xbrl_id  # XBRLファイル固有のID
+        self.__head_item_key = head_item_key  # XBRLファイル固有のID
         self.__source_file_id = None  # XBRLのソースファイルID
         self.__source_file: Optional[SourceFile] = (
             None  # XBRLのソースファイル
         )
 
         # 初期化メソッド
-        self.__init_xbrl_id()
+        self.__init_head_item_key()
         self.__init_xbrl_type()
         self.__init_parser()
         self.__init_source_file_id()
@@ -79,16 +82,16 @@ class BaseXBRLParser:
         return self.__soup
 
     @property
-    def xbrl_id(self):
-        return self.__xbrl_id
+    def head_item_key(self):
+        return self.__head_item_key
 
-    @xbrl_id.setter
-    def xbrl_id(self, xbrl_id: str):
-        self.__xbrl_id = xbrl_id
+    @head_item_key.setter
+    def head_item_key(self, head_item_key: str):
+        self.__head_item_key = head_item_key
 
-    @xbrl_id.setter
-    def xbrl_id(self, xbrl_id: str):
-        self.__xbrl_id = xbrl_id
+    @head_item_key.setter
+    def head_item_key(self, head_item_key: str):
+        self.__head_item_key = head_item_key
 
     @property
     def xbrl_url(self):
@@ -171,10 +174,10 @@ class BaseXBRLParser:
         # XBRLを読み込む
         self.__read_xbrl(file_path)
 
-    def __init_xbrl_id(self):
+    def __init_head_item_key(self):
         """XBRLファイル固有のIDを設定する"""
-        if self.xbrl_id is None:
-            self.__xbrl_id = str(uuid4())
+        if self.head_item_key is None:
+            self.__head_item_key = str(uuid4())
 
     def __init_source_file_id(self):
         """XBRLのソースファイルIDを設定する"""
@@ -182,7 +185,7 @@ class BaseXBRLParser:
         if self.xbrl_url is None:
             raise Exception("XBRLのURLが指定されていません。")
 
-        if self.xbrl_id is None:
+        if self.head_item_key is None:
             raise Exception("XBRLのIDが指定されていません。")
 
         if self.xbrl_url.startswith("http"):
@@ -191,7 +194,9 @@ class BaseXBRLParser:
             )
         else:
             self.__source_file_id = str(
-                Utils.string_to_uuid(f"{self.xbrl_id}{self.basename}")
+                Utils.string_to_uuid(
+                    f"{self.head_item_key}{self.basename}"
+                )
             )
 
     def __init_xbrl_type(self):
@@ -216,17 +221,17 @@ class BaseXBRLParser:
         """XBRLのソースファイルを取得する"""
         if self.xbrl_url.startswith("http"):
             type = "url"
-            xbrl_id = None
+            head_item_key = None
             url = self.xbrl_url
         else:
             type = "local"
-            xbrl_id = self.xbrl_id
+            head_item_key = self.head_item_key
             url = None
         self.__source_file = SourceFile(
             name=name,
             type=type,
             url=url,
-            xbrl_id=xbrl_id,
+            head_item_key=head_item_key,
             id=self.source_file_id,
         )
 

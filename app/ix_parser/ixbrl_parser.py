@@ -17,9 +17,12 @@ class IxbrlParser(BaseXBRLParser):
     """iXBRLを解析するクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名を検証
         self._assert_valid_basename("ixbrl.htm")
@@ -218,7 +221,7 @@ class IxbrlParser(BaseXBRLParser):
 
             # 辞書に追加
             inn = IxNonNumeric(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 context=context,
                 name=name,
                 xsi_nil=xsi_nil,
@@ -349,7 +352,7 @@ class IxbrlParser(BaseXBRLParser):
                     display_scale = "株"
 
             inn = IxNonFraction(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 context=context,
                 decimals=decimals,
                 format=format_str,
@@ -410,7 +413,7 @@ class IxbrlParser(BaseXBRLParser):
                     )
 
             inn = IxContext(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 context_id=context_id,
                 period=period,
                 scenario=scenario,

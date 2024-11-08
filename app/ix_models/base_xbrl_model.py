@@ -20,7 +20,7 @@ class BaseXbrlModel:
         # XBRLファイルを解凍したディレクトリのパスを取得
         self.__directory_path = self.__unzip_xbrl()
         self.__xbrl_category = self.__xbrl_category()
-        self.__xbrl_id = str(
+        self.__head_item_key = str(
             Utils.string_to_uuid(Path(self.xbrl_zip_path).name)
         )
 
@@ -41,11 +41,11 @@ class BaseXbrlModel:
                 yield None
 
     @property
-    def xbrl_id(self):
-        return self.__xbrl_id
+    def head_item_key(self):
+        return self.__head_item_key
 
-    def set_xbrl_id(self, xbrl_id):
-        self.__xbrl_id = xbrl_id
+    def set_head_item_key(self, head_item_key):
+        self.__head_item_key = head_item_key
         return self
 
     def _set_manager(self):
@@ -168,10 +168,10 @@ class BaseXbrlModel:
             getattr(manager, method)().to_DataFrame() for method in methods
         )
 
-    def _get_xbrl_id(self, tuple):
-        """tuple内のDataFrameにxbrl_idを追加する"""
+    def _get_head_item_key(self, tuple):
+        """tuple内のDataFrameにhead_item_keyを追加する"""
         for df in tuple:
             if isinstance(df, pd.DataFrame):
-                df["xbrl_id"] = self.xbrl_id
+                df["head_item_key"] = self.head_item_key
 
         return tuple

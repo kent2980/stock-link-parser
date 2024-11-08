@@ -15,13 +15,15 @@ class BaseXbrlManager:
     """XBRLディレクトリの解析を行う基底クラス"""
 
     def __init__(
-        self, directory_path, xbrl_id: Optional[str] = None
+        self, directory_path, head_item_key: Optional[str] = None
     ) -> None:
         self.__directory_path = Path(directory_path)
         self.__files = self._to_filelist()
         self.__related_files: Optional[DataFrame] = None
         self.__items = []
-        self.__xbrl_id = xbrl_id if xbrl_id else str(uuid4())
+        self.__head_item_key = (
+            head_item_key if head_item_key else str(uuid4())
+        )
         self.__parsers: Optional[list[BaseXBRLParser]] = None
         self.__source_file_id_list = None
 
@@ -42,12 +44,12 @@ class BaseXbrlManager:
         return self.__items
 
     @property
-    def xbrl_id(self):
-        return self.__xbrl_id
+    def head_item_key(self):
+        return self.__head_item_key
 
-    @xbrl_id.setter
-    def xbrl_id(self, xbrl_id):
-        self.__xbrl_id = xbrl_id
+    @head_item_key.setter
+    def head_item_key(self, head_item_key):
+        self.__head_item_key = head_item_key
 
     @property
     def parsers(self):

@@ -9,9 +9,9 @@ class SchemaManager(BaseXbrlManager):
     """XBRLディレクトリの解析を行うクラス"""
 
     def __init__(
-        self, directory_path, xbrl_id: Optional[str] = None
+        self, directory_path, head_item_key: Optional[str] = None
     ) -> None:
-        super().__init__(directory_path, xbrl_id)
+        super().__init__(directory_path, head_item_key)
 
         self.__files = Path(directory_path).rglob("*.xsd")
         # self.__filesをリストに変換
@@ -49,7 +49,7 @@ class SchemaManager(BaseXbrlManager):
     def __init_parser(self):
         """パーサーの初期化を行う"""
         self.__parsers = [
-            SchemaParser(file.as_posix(), xbrl_id=self.xbrl_id)
+            SchemaParser(file.as_posix(), head_item_key=self.head_item_key)
             for file in self.__files
         ]
 

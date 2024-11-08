@@ -9,9 +9,12 @@ class BaseLinkParser(BaseXBRLParser):
     """BaseLinkParserのクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # プロパティの初期化
         self.__link_tag_name = None
@@ -45,7 +48,7 @@ class BaseLinkParser(BaseXBRLParser):
             xlink_schema = tag.get("xlink:href").split("#")[0]
             xlink_href = tag.get("xlink:href").split("#")[1]
             lrr = LinkRole(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 xlink_type=tag.get("xlink:type"),
                 xlink_schema=xlink_schema,
                 xlink_href=xlink_href,
@@ -83,7 +86,7 @@ class BaseLinkParser(BaseXBRLParser):
                 xlink_href = tag.get("xlink:href").split("#")[1]
 
                 ll = LinkLoc(
-                    xbrl_id=self.xbrl_id,
+                    head_item_key=self.head_item_key,
                     attr_value=attr_value,
                     xlink_type=tag.get("xlink:type"),
                     xlink_schema=xlink_schema,
@@ -132,7 +135,7 @@ class BaseLinkParser(BaseXBRLParser):
                 )
 
                 la = LinkArc(
-                    xbrl_id=self.xbrl_id,
+                    head_item_key=self.head_item_key,
                     attr_value=attr_value,
                     xlink_type=tag.get("xlink:type"),
                     xlink_from=tag.get("xlink:from"),
@@ -161,7 +164,7 @@ class BaseLinkParser(BaseXBRLParser):
         for tag in tags:
 
             lb = LinkBase(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 xmlns_xlink=tag.get("xmlns:xlink"),
                 xmlns_xsi=tag.get("xmlns:xsi"),
                 xmlns_link=tag.get("xmlns:link"),
@@ -185,7 +188,7 @@ class BaseLinkParser(BaseXBRLParser):
         for tag in tags:
 
             lt = LinkTag(
-                xbrl_id=self.xbrl_id,
+                head_item_key=self.head_item_key,
                 xlink_type=tag.get("xlink:type"),
                 xlink_role=tag.get("xlink:role"),
             )
@@ -200,9 +203,12 @@ class CalLinkParser(BaseLinkParser):
     """CalculationLinkのParserクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証
         self._assert_valid_basename("cal.xml")
@@ -218,9 +224,12 @@ class DefLinkParser(BaseLinkParser):
     """DefinitionLinkのParserクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証
         self._assert_valid_basename("def.xml")
@@ -234,9 +243,12 @@ class PreLinkParser(BaseLinkParser):
     """PresentationLinkのParserクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証
         self._assert_valid_basename("pre.xml")

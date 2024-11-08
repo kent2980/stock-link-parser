@@ -18,7 +18,7 @@ class IXBRLManager(BaseXbrlManager):
     """
 
     def __init__(
-        self, directory_path, xbrl_id: Optional[str] = None
+        self, directory_path, head_item_key: Optional[str] = None
     ) -> None:
         """
         IxbrlManagerクラスのコンストラクタです。
@@ -29,7 +29,7 @@ class IXBRLManager(BaseXbrlManager):
         Returns:
             None
         """
-        super().__init__(directory_path, xbrl_id=xbrl_id)
+        super().__init__(directory_path, head_item_key=head_item_key)
         self._set_htmlbase_files("ixbrl")
 
         if len(self.related_files) == 0:
@@ -68,12 +68,12 @@ class IXBRLManager(BaseXbrlManager):
         for _, row in self.related_files.iterrows():
             try:
                 parser = IxbrlParser(
-                    row["xlink_href"], xbrl_id=self.xbrl_id
+                    row["xlink_href"], head_item_key=self.head_item_key
                 )
                 parsers.append(parser)
             except DocumentNameTagNotFoundError:
                 # 後でエラーログを出力する処理を追加するために注釈を追加
-                # logger.error(f"DocumentNameタグが見つかりません。[xbrl_id]: {self.xbrl_id}")
+                # logger.error(f"DocumentNameタグが見つかりません。[head_item_key]: {self.head_item_key}")
                 pass
 
         self._set_parsers(parsers)
@@ -196,7 +196,7 @@ class IXBRLManager(BaseXbrlManager):
         is_sfp = False
         fiscal_year_end = None
         tel = None
-        xbrl_id = None
+        head_item_key = None
         report_type = None
         is_dividend_revision = None  # 配当の修正
         dividend_increase_rate = None  # 増配率
@@ -225,7 +225,7 @@ class IXBRLManager(BaseXbrlManager):
             # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
 
             # region 基本情報の取得
-            xbrl_id = item.xbrl_id  # XBRL ID
+            head_item_key = item.head_item_key  # XBRL ID
             report_type = item.report_type  # 提出種別
             # endregion
 
@@ -424,7 +424,7 @@ class IXBRLManager(BaseXbrlManager):
         # endregion
 
         ix_header = IxHeader(
-            xbrl_id=self.xbrl_id,
+            item_key=self.head_item_key,
             # ...機能を追加する際は、ここに新しい変数を追加してください。
         )
 
@@ -433,7 +433,7 @@ class IXBRLManager(BaseXbrlManager):
         self.__ix_header = header
 
         self._set_items(
-            id=ix_header.xbrl_id,
+            id=ix_header.head_item_key,
             key="ix_head_title",
             items=header,
             sort_position=0,

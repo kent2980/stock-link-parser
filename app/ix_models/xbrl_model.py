@@ -26,24 +26,26 @@ class XBRLModel(BaseXbrlModel):
     def __init__(self, xbrl_zip_path, output_path) -> None:
         super().__init__(xbrl_zip_path, output_path)
         self.__ixbrl_manager: IXBRLManager = IXBRLManager(
-            self.directory_path, xbrl_id=self.xbrl_id
+            self.directory_path, head_item_key=self.head_item_key
         )
         self.__label_manager = self._init_manager(LabelManager)
         self.__cal_link_manager = self._init_manager(CalLinkManager)
         self.__def_link_manager = self._init_manager(DefLinkManager)
         self.__pre_link_manager = self._init_manager(PreLinkManager)
         self.__schema_manager: SchemaManager = SchemaManager(
-            self.directory_path, xbrl_id=self.xbrl_id
+            self.directory_path, head_item_key=self.head_item_key
         )
         self.__qualitative_manager = QualitativeManager(
-            self.directory_path, xbrl_id=self.xbrl_id
+            self.directory_path, head_item_key=self.head_item_key
         )
         self.__all_items = None
 
     def _init_manager(self, manager_class: BaseXbrlManager):
         try:
             return manager_class(
-                self.directory_path, self.output_path, xbrl_id=self.xbrl_id
+                self.directory_path,
+                self.output_path,
+                head_item_key=self.head_item_key,
             )
         except XbrlListEmptyError as e:
             # print(e)
@@ -173,7 +175,9 @@ class XBRLModel(BaseXbrlModel):
         return self.ixbrl_manager.ix_header
 
     def get_file_path(self):
-        return FilePath(xbrl_id=self.xbrl_id, path=self.xbrl_zip_path)
+        return FilePath(
+            head_item_key=self.head_item_key, path=self.xbrl_zip_path
+        )
 
     def __str__(self) -> str:
 

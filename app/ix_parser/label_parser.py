@@ -10,9 +10,12 @@ class LabelParser(BaseXBRLParser):
     """XBRLのラベル情報を取得するクラス"""
 
     def __init__(
-        self, xbrl_url, output_path=None, xbrl_id: Optional[str] = None
+        self,
+        xbrl_url,
+        output_path=None,
+        head_item_key: Optional[str] = None,
     ):
-        super().__init__(xbrl_url, output_path, xbrl_id)
+        super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名を検証
         self._assert_valid_basename("lab.xml", "lab-en.xml")

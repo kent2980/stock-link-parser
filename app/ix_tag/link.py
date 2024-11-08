@@ -11,7 +11,7 @@ class LinkSchemaImport(BaseTag):
     リンクスキーマのインポートを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     schema_location: Optional[str] = Field(default=None)
     name_space: Optional[str] = Field(default=None)
     document_type: Optional[str] = Field(default=None)
@@ -22,7 +22,7 @@ class LinkSchemaImport(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.schema_location}_{self.name_space}_{self.document_type}_{self.xbrl_id}",
+                    f"{self.schema_location}_{self.name_space}_{self.document_type}_{self.head_item_key}",
                 )
             )
 
@@ -32,7 +32,7 @@ class LinkBaseRef(BaseTag):
     リンクベースの参照を表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     xlink_type: Optional[str] = Field(default=None)
     xlink_href: Optional[str] = Field(default=None)
     xlink_role: Optional[str] = Field(default=None)
@@ -45,7 +45,7 @@ class LinkBaseRef(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_href}_{self.xlink_role}_{self.document_type}_{self.xbrl_id}",
+                    f"{self.xlink_href}_{self.xlink_role}_{self.document_type}_{self.head_item_key}",
                 )
             )
 
@@ -55,7 +55,7 @@ class LinkElement(BaseTag):
     リンク要素を表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     id: Optional[str] = Field(default=None)
     xbrli_balance: Optional[str] = Field(default=None)
     xbrli_period_type: Optional[str] = Field(default=None)
@@ -72,7 +72,7 @@ class LinkElement(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.type}_{self.document_type}_{self.xbrl_id}",
+                    f"{self.name}_{self.type}_{self.document_type}_{self.head_item_key}",
                 )
             )
 
@@ -82,7 +82,7 @@ class LinkRole(BaseTag):
     リンクロールを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     xlink_type: Optional[str] = Field(default=None)
     xlink_schema: Optional[str] = Field(default=None)
     xlink_href: Optional[str] = Field(default=None)
@@ -94,7 +94,7 @@ class LinkRole(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.role_uri}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.xbrl_id}",
+                    f"{self.role_uri}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.head_item_key}",
                 )
             )
 
@@ -104,7 +104,7 @@ class LinkLoc(BaseTag):
     リンクロケーションを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     attr_value: Optional[str] = Field(default=None)
     xlink_type: Optional[str] = Field(default=None)
     xlink_schema: Optional[str] = Field(default=None)
@@ -118,7 +118,7 @@ class LinkLoc(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_label}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.source_file_id}_{self.xbrl_id}_{self.attr_value}",
+                    f"{self.xlink_label}_{self.xlink_schema}_{self.xlink_type}_{self.xlink_href}_{self.source_file_id}_{self.head_item_key}_{self.attr_value}",
                 )
             )
 
@@ -128,7 +128,7 @@ class LinkArc(BaseTag):
     リンクアークを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     attr_value: Optional[str] = Field(default=None)
     xlink_type: Optional[str] = Field(default=None)
     xlink_from: Optional[str] = Field(default=None)
@@ -144,7 +144,7 @@ class LinkArc(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_from}_{self.xlink_to}_{self.xlink_type}_{self.xlink_arcrole}_{self.source_file_id}_{self.attr_value}_{self.xlink_order}_{self.xlink_weight}_{self.xbrl_id}",
+                    f"{self.xlink_from}_{self.xlink_to}_{self.xlink_type}_{self.xlink_arcrole}_{self.source_file_id}_{self.attr_value}_{self.xlink_order}_{self.xlink_weight}_{self.head_item_key}",
                 )
             )
 
@@ -154,7 +154,7 @@ class LinkBase(BaseTag):
     リンクベースを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     xmlns_xlink: Optional[str] = Field(default=None)
     xmlns_xsi: Optional[str] = Field(default=None)
     xmlns_link: Optional[str] = Field(default=None)
@@ -165,7 +165,7 @@ class LinkBase(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xmlns_xlink}_{self.xmlns_xsi}_{self.xmlns_link}_{self.xbrl_id}",
+                    f"{self.xmlns_xlink}_{self.xmlns_xsi}_{self.xmlns_link}_{self.head_item_key}",
                 )
             )
 
@@ -175,7 +175,7 @@ class LinkTag(BaseTag):
     リンクタグを表すデータクラスです。
     """
 
-    xbrl_id: Optional[str] = Field(default=None)
+    head_item_key: Optional[str] = Field(default=None)
     xlink_type: Optional[str] = Field(default=None)
     xlink_role: Optional[str] = Field(default=None)
 
@@ -185,6 +185,6 @@ class LinkTag(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.xlink_type}_{self.xlink_role}_{self.xbrl_id}",
+                    f"{self.xlink_type}_{self.xlink_role}_{self.head_item_key}",
                 )
             )
