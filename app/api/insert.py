@@ -1,5 +1,6 @@
 import gc
 import pprint
+import time
 from pathlib import Path
 from typing import Dict, List
 
@@ -183,42 +184,75 @@ class Insert:
     def __insert_api_push(
         self, items: List[Dict[str, any]], head_item_key: str
     ) -> bool:
+        print("insert_api_push***************")
         for item in items:
             response = None
             if item:
                 data = item["item"]
                 if item["key"] == "ix_file_path":
+                    startTime = time.time()
                     response = self.file_path(data)
+                    print(f"ix_file_path: {time.time() - startTime}")
                 elif item["key"] == "ix_head_title":
+                    startTime = time.time()
                     response = self.ix_head_titles(data)
+                    print(f"ix_head_title: {time.time() - startTime}")
                 elif item["key"].endswith("source_file"):
+                    startTime = time.time()
                     response = self.sources(data)
+                    print(f"source_file: {time.time() - startTime}")
                 elif item["key"] == "sc_linkbase_ref":
+                    startTime = time.time()
                     response = self.schemas(data)
+                    print(f"sc_linkbase_ref: {time.time() - startTime}")
                 elif item["key"] == "ix_non_numeric":
+                    startTime = time.time()
                     response = self.ix_non_numerics(data)
+                    print(f"ix_non_numeric: {time.time() - startTime}")
                 elif item["key"] == "ix_non_fraction":
+                    startTime = time.time()
                     response = self.ix_non_fractions(data)
+                    print(f"ix_non_fraction: {time.time() - startTime}")
                 elif item["key"] == "lab_link_locs":
+                    startTime = time.time()
                     response = self.label_locs(data)
+                    print(f"lab_link_locs: {time.time() - startTime}")
                 elif item["key"] == "lab_link_arcs":
+                    startTime = time.time()
                     response = self.label_arcs(data)
+                    print(f"lab_link_arcs: {time.time() - startTime}")
                 elif item["key"] == "lab_link_values":
+                    startTime = time.time()
                     response = self.label_values(data)
+                    print(f"lab_link_values: {time.time() - startTime}")
                 elif item["key"] == "cal_link_locs":
+                    startTime = time.time()
                     response = self.cal_locs(data)
+                    print(f"cal_link_locs: {time.time() - startTime}")
                 elif item["key"] == "cal_link_arcs":
+                    startTime = time.time()
                     response = self.cal_arcs(data)
+                    print(f"cal_link_arcs: {time.time() - startTime}")
                 elif item["key"] == "pre_link_locs":
+                    startTime = time.time()
                     response = self.pre_locs(data)
+                    print(f"pre_link_locs: {time.time() - startTime}")
                 elif item["key"] == "pre_link_arcs":
+                    startTime = time.time()
                     response = self.pre_arcs(data)
+                    print(f"pre_link_arcs: {time.time() - startTime}")
                 elif item["key"] == "def_link_locs":
+                    startTime = time.time()
                     response = self.def_locs(data)
+                    print(f"def_link_locs: {time.time() - startTime}")
                 elif item["key"] == "def_link_arcs":
+                    startTime = time.time()
                     response = self.def_arcs(data)
+                    print(f"def_link_arcs: {time.time() - startTime}")
                 elif item["key"] == "qualitative_info":
+                    startTime = time.time()
                     response = self.qualitative(data)
+                    print(f"qualitative_info: {time.time() - startTime}")
 
                 if response:
                     if response.status_code != 200:

@@ -1,3 +1,4 @@
+import time
 from typing import Dict, List
 
 from app.exception import XbrlListEmptyError
@@ -25,19 +26,33 @@ class XBRLModel(BaseXbrlModel):
 
     def __init__(self, xbrl_zip_path, output_path) -> None:
         super().__init__(xbrl_zip_path, output_path)
+        startTime = time.time()
         self.__ixbrl_manager: IXBRLManager = IXBRLManager(
             self.directory_path, head_item_key=self.head_item_key
         )
+        print("IXBRLManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__label_manager = self._init_manager(LabelManager)
+        print("LabelManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__cal_link_manager = self._init_manager(CalLinkManager)
+        print("CalLinkManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__def_link_manager = self._init_manager(DefLinkManager)
+        print("DefLinkManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__pre_link_manager = self._init_manager(PreLinkManager)
+        print("PreLinkManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__schema_manager: SchemaManager = SchemaManager(
             self.directory_path, head_item_key=self.head_item_key
         )
+        print("SchemaManager: ", time.time() - startTime)
+        startTime = time.time()
         self.__qualitative_manager = QualitativeManager(
             self.directory_path, head_item_key=self.head_item_key
         )
+        print("QualitativeManager: ", time.time() - startTime)
         self.__all_items = None
 
     def _init_manager(self, manager_class: BaseXbrlManager):
