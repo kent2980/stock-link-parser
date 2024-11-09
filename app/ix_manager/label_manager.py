@@ -1,6 +1,9 @@
 from typing import List, Optional
 
 from app.exception import SetLanguageNotError
+from app.exception.xbrl_parser_exception import (
+    AlreadyExistSourceFileIdError,
+)
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import LabelParser
 
@@ -81,13 +84,16 @@ class LabelManager(BaseXbrlManager):
         """パーサーを設定します。"""
         parsers: List[LabelParser] = []
         for _, row in self.related_files.iterrows():
-            parser = LabelParser(
-                row["xlink_href"],
-                self.output_path,
-                head_item_key=self.head_item_key,
-                is_exist_source_file_id_api_url=self.__is_exits_source_file_id_api_url,
-            )
-            parsers.append(parser)
+            try:
+                parser = LabelParser(
+                    row["xlink_href"],
+                    self.output_path,
+                    head_item_key=self.head_item_key,
+                    is_exist_source_file_id_api_url=self.__is_exits_source_file_id_api_url,
+                )
+                parsers.append(parser)
+            except AlreadyExistSourceFileIdError:
+                continue
 
         self._set_parsers(parsers)
 
