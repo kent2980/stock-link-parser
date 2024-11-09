@@ -1,5 +1,6 @@
 import gc
 import pprint
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List
 
@@ -194,41 +195,56 @@ class Insert:
                     response = self.ix_head_titles(data)
                 elif item["key"].endswith("source_file"):
                     response = self.sources(data)
-                elif item["key"] == "sc_linkbase_ref":
-                    response = self.schemas(data)
-                elif item["key"] == "ix_non_numeric":
-                    response = self.ix_non_numerics(data)
-                elif item["key"] == "ix_non_fraction":
-                    response = self.ix_non_fractions(data)
-                elif item["key"] == "lab_link_locs":
-                    response = self.label_locs(data)
-                elif item["key"] == "lab_link_arcs":
-                    response = self.label_arcs(data)
-                elif item["key"] == "lab_link_values":
-                    response = self.label_values(data)
-                elif item["key"] == "cal_link_locs":
-                    response = self.cal_locs(data)
-                elif item["key"] == "cal_link_arcs":
-                    response = self.cal_arcs(data)
-                elif item["key"] == "pre_link_locs":
-                    response = self.pre_locs(data)
-                elif item["key"] == "pre_link_arcs":
-                    response = self.pre_arcs(data)
-                elif item["key"] == "def_link_locs":
-                    response = self.def_locs(data)
-                elif item["key"] == "def_link_arcs":
-                    response = self.def_arcs(data)
-                elif item["key"] == "qualitative_info":
-                    response = self.qualitative(data)
 
-                if response:
-                    if response.status_code != 200:
+        def send_request(item):
+            data = item["item"]
+            if item["key"] == "sc_linkbase_ref":
+                return self.schemas(data)
+            elif item["key"] == "ix_non_numeric":
+                return self.ix_non_numerics(data)
+            elif item["key"] == "ix_non_fraction":
+                return self.ix_non_fractions(data)
+            elif item["key"] == "lab_link_locs":
+                return self.label_locs(data)
+            elif item["key"] == "lab_link_arcs":
+                return self.label_arcs(data)
+            elif item["key"] == "lab_link_values":
+                return self.label_values(data)
+            elif item["key"] == "cal_link_locs":
+                return self.cal_locs(data)
+            elif item["key"] == "cal_link_arcs":
+                return self.cal_arcs(data)
+            elif item["key"] == "pre_link_locs":
+                return self.pre_locs(data)
+            elif item["key"] == "pre_link_arcs":
+                return self.pre_arcs(data)
+            elif item["key"] == "def_link_locs":
+                return self.def_locs(data)
+            elif item["key"] == "def_link_arcs":
+                return self.def_arcs(data)
+            elif item["key"] == "qualitative_info":
+                return self.qualitative(data)
+            return None
+
+        with ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(send_request, item): item for item in items
+            }
+
+            for future in as_completed(futures):
+                item = futures[future]
+                try:
+                    response = future.result()
+                    if response and response.status_code != 200:
+                        print(
+                            f"エンドポイント({response.url})にデータを追加できませんでした。ステータスコード: {response.status_code}"
+                        )
                         return False
+                except Exception as e:
+                    print(f"リクエスト中にエラーが発生しました: {e}")
+                    return False
 
         response = self.set_head_active(head_item_key)
         response = self.update_head_generate(head_item_key)
-
-        if response.status_code != 200:
-            return False
 
         return True

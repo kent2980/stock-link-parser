@@ -27,7 +27,7 @@ class IxNonNumeric(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.context}_{self.head_item_key}",
+                    f"{self.name}_{self.context}_{self.head_item_key}_{self.value}_{self.xbrl_type}_{self.ixbrl_role}_{self.source_file_id}",
                 )
             )
 
@@ -58,7 +58,7 @@ class IxNonFraction(BaseTag):
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.context}_{self.head_item_key}",
+                    f"{self.name}_{self.context}_{self.head_item_key}_{self.numeric}_{self.xbrl_type}_{self.ixbrl_role}_{self.source_file_id}",
                 )
             )
 
