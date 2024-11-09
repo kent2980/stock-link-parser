@@ -1,3 +1,5 @@
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional
 
 from app.exception import XbrlListEmptyError
@@ -33,20 +35,59 @@ class XBRLModel(BaseXbrlModel):
         self.is_exist_source_file_id_api_url = (
             is_exist_source_file_id_api_url
         )
-        self.__ixbrl_manager: IXBRLManager = IXBRLManager(
-            self.directory_path, head_item_key=self.head_item_key
-        )
-        self.__label_manager = self._init_manager(LabelManager)
-        self.__cal_link_manager = self._init_manager(CalLinkManager)
-        self.__def_link_manager = self._init_manager(DefLinkManager)
-        self.__pre_link_manager = self._init_manager(PreLinkManager)
-        self.__schema_manager: SchemaManager = SchemaManager(
-            self.directory_path, head_item_key=self.head_item_key
-        )
-        self.__qualitative_manager = QualitativeManager(
-            self.directory_path, head_item_key=self.head_item_key
-        )
         self.__all_items = None
+        self._ixbrl_manager = None
+        self._label_manager = None
+        self._cal_link_manager = None
+        self._def_link_manager = None
+        self._pre_link_manager = None
+        self._schema_manager = None
+        self._qualitative_manager = None
+
+        # イベントオブジェクトを作成
+        self.ixbrl_manager_initialized = threading.Event()
+
+        with ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(
+                    self._init_manager, LabelManager
+                ): "label_manager",
+                executor.submit(
+                    self._init_manager, CalLinkManager
+                ): "cal_link_manager",
+                executor.submit(
+                    self._init_manager, DefLinkManager
+                ): "def_link_manager",
+                executor.submit(
+                    self._init_manager, PreLinkManager
+                ): "pre_link_manager",
+                executor.submit(
+                    SchemaManager,
+                    self.directory_path,
+                    head_item_key=self.head_item_key,
+                ): "schema_manager",
+                executor.submit(
+                    QualitativeManager,
+                    self.directory_path,
+                    head_item_key=self.head_item_key,
+                ): "qualitative_manager",
+                executor.submit(self._init_ixbrl_manager): "ixbrl_manager",
+            }
+
+            for future in as_completed(futures):
+                manager_name = futures[future]
+                try:
+                    result = future.result()
+                    setattr(self, f"_{manager_name}", result)
+                except Exception as e:
+                    print(
+                        f"{manager_name}の初期化中にエラーが発生しました: {e}"
+                    )
+            # ixbrl_managerの初期化が完了したことを通知
+            self.ixbrl_manager_initialized.set()
+
+        # if self.__ixbrl_manager is None:
+        #     raise XbrlListEmptyError("XBRLファイルが空です。")
 
     def _init_manager(self, manager_class: BaseXbrlManager):
         try:
@@ -69,31 +110,31 @@ class XBRLModel(BaseXbrlModel):
 
     @property
     def schema_manager(self):
-        return self.__schema_manager
+        return self._schema_manager
 
     @property
     def ixbrl_manager(self):
-        return self.__ixbrl_manager
+        return self._ixbrl_manager
 
     @property
     def label_manager(self):
-        return self.__label_manager
+        return self._label_manager
 
     @property
     def cal_link_manager(self):
-        return self.__cal_link_manager
+        return self._cal_link_manager
 
     @property
     def def_link_manager(self):
-        return self.__def_link_manager
+        return self._def_link_manager
 
     @property
     def pre_link_manager(self):
-        return self.__pre_link_manager
+        return self._pre_link_manager
 
     @property
     def qualitative_manager(self):
-        return self.__qualitative_manager
+        return self._qualitative_manager
 
     @property
     def all_items(self):
@@ -103,13 +144,13 @@ class XBRLModel(BaseXbrlModel):
 
     def __del__(self):
         super().__del__()
-        self.__ixbrl_manager = None
-        self.__label_manager = None
-        self.__cal_link_manager = None
-        self.__def_link_manager = None
-        self.__pre_link_manager = None
-        self.__schema_manager = None
-        self.__qualitative_manager = None
+        self._ixbrl_manager = None
+        self._label_manager = None
+        self._cal_link_manager = None
+        self._def_link_manager = None
+        self._pre_link_manager = None
+        self._schema_manager = None
+        self._qualitative_manager = None
 
     def get_schema(self):
         return self.schema_manager
@@ -158,6 +199,9 @@ class XBRLModel(BaseXbrlModel):
         """<p>XBRLファイルに含まれる全てのデータを取得します。</p>
         <p>取得した辞書のキーはget_all_items_keys()で取得できます</p>
         """
+        # ixbrl_managerの初期化が完了するまで待機
+        # self.ixbrl_manager_initialized.wait()
+        # マネージャークラスの
         lists = []
 
         file_path = {  # ファイルパスを追加
@@ -195,8 +239,14 @@ class XBRLModel(BaseXbrlModel):
             head_item_key=self.head_item_key, path=self.xbrl_zip_path
         )
 
-    def __str__(self) -> str:
+    def _init_ixbrl_manager(self):
+        self.__ixbrl_manager = IXBRLManager(
+            self.directory_path, head_item_key=self.head_item_key
+        )
+        return self.__ixbrl_manager
 
+    def __str__(self):
+        # ixbrl_managerの初期化が完了するまで待機
+        self.ixbrl_manager_initialized.wait()
         header = self.ix_header().__dict__
-
         return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"
