@@ -47,6 +47,8 @@ SOURCE_FILE_ID_LIST = "/xbrl/source/id_list/"
 """ SOURCEテーブルのFILE_IDを取得するエンドポイント """
 IS_ACTIVE_HEAD = "/xbrl/ix/head/is_active/"
 """ IX_HEAD_TITLEテーブルに有効なデータが存在するか確認するエンドポイント """
+IS_EXITS_SOURCE_FILE_ID = "/xbrl/is/exits/source_file_id/"
+""" SourceFileテーブルにSOURCE_FILE_IDが存在するか確認するエンドポイント """
 
 # DELETE エンドポイント
 DELETE_FILE_PATH = "/xbrl/ix/file_path/delete/"

@@ -163,6 +163,8 @@ class Insert:
 
         zip_paths = list(Path(dir_path).rglob("*.zip"))
 
+        is_source_file_id_api_url = self.url + ep.IS_EXITS_SOURCE_FILE_ID
+
         with tqdm(total=len(zip_paths)) as pbar:
             for zip_path in zip_paths:
                 head_item_key = Utils.string_to_uuid(Path(zip_path).name)
@@ -173,7 +175,9 @@ class Insert:
                 else:
                     try:
                         model = XBRLModel(
-                            zip_path.as_posix(), self.output_path
+                            zip_path.as_posix(),
+                            self.output_path,
+                            is_exist_source_file_id_api_url=is_source_file_id_api_url,
                         )
                         items = model.get_all_items()
                         is_push = self.__insert_api_push(
