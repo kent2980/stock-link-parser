@@ -1,5 +1,4 @@
-import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from app.exception import XbrlListEmptyError
 from app.ix_manager import (
@@ -24,44 +23,46 @@ class XBRLModel(BaseXbrlModel):
         <p>output_path (str): スキーマでURLリンクされている、関係XMLファイルの出力先パス</p>
     """
 
-    def __init__(self, xbrl_zip_path, output_path) -> None:
+    def __init__(
+        self,
+        xbrl_zip_path,
+        output_path,
+        is_exist_source_file_id_api_url: Optional[str] = None,
+    ) -> None:
         super().__init__(xbrl_zip_path, output_path)
-        startTime = time.time()
+        self.is_exist_source_file_id_api_url = (
+            is_exist_source_file_id_api_url
+        )
         self.__ixbrl_manager: IXBRLManager = IXBRLManager(
             self.directory_path, head_item_key=self.head_item_key
         )
-        print("IXBRLManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__label_manager = self._init_manager(LabelManager)
-        print("LabelManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__cal_link_manager = self._init_manager(CalLinkManager)
-        print("CalLinkManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__def_link_manager = self._init_manager(DefLinkManager)
-        print("DefLinkManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__pre_link_manager = self._init_manager(PreLinkManager)
-        print("PreLinkManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__schema_manager: SchemaManager = SchemaManager(
             self.directory_path, head_item_key=self.head_item_key
         )
-        print("SchemaManager: ", time.time() - startTime)
-        startTime = time.time()
         self.__qualitative_manager = QualitativeManager(
             self.directory_path, head_item_key=self.head_item_key
         )
-        print("QualitativeManager: ", time.time() - startTime)
         self.__all_items = None
 
     def _init_manager(self, manager_class: BaseXbrlManager):
         try:
-            return manager_class(
-                self.directory_path,
-                self.output_path,
-                head_item_key=self.head_item_key,
-            )
+            if isinstance(manager_class, LabelManager):
+                return manager_class(
+                    self.directory_path,
+                    self.output_path,
+                    head_item_key=self.head_item_key,
+                    is_exist_source_file_id_api_url=self.is_exist_source_file_id_api_url,
+                )
+            else:
+                return manager_class(
+                    self.directory_path,
+                    self.output_path,
+                    head_item_key=self.head_item_key,
+                )
         except XbrlListEmptyError as e:
             # print(e)
             pass
@@ -194,8 +195,8 @@ class XBRLModel(BaseXbrlModel):
             head_item_key=self.head_item_key, path=self.xbrl_zip_path
         )
 
-    # def __str__(self) -> str:
+    def __str__(self) -> str:
 
-    #     header = self.ix_header().__dict__
+        header = self.ix_header().__dict__
 
-    #     return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"
+        return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"

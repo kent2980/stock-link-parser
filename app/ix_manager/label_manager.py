@@ -14,6 +14,7 @@ class LabelManager(BaseXbrlManager):
         output_path,
         lang="jp",
         head_item_key: Optional[str] = None,
+        is_exist_source_file_id_api_url: Optional[str] = None,
     ):
         super().__init__(directory_path, head_item_key=head_item_key)
         self.__output_path = output_path
@@ -21,6 +22,9 @@ class LabelManager(BaseXbrlManager):
         self.__link_labels = None
         self.__link_label_locs = None
         self.__link_label_arcs = None
+        self.__is_exits_source_file_id_api_url = (
+            is_exist_source_file_id_api_url
+        )
 
         self._set_linkbase_files("labelLinkbaseRef")
         self.__init_language(lang)
@@ -81,6 +85,7 @@ class LabelManager(BaseXbrlManager):
                 row["xlink_href"],
                 self.output_path,
                 head_item_key=self.head_item_key,
+                is_exist_source_file_id_api_url=self.__is_exits_source_file_id_api_url,
             )
             parsers.append(parser)
 

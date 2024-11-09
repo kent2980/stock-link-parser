@@ -196,22 +196,12 @@ class IXBRLManager(BaseXbrlManager):
         is_sfp = False
         fiscal_year_end = None
         tel = None
-        head_item_key = None
         report_type = None
-        is_dividend_revision = None  # 配当の修正
-        dividend_increase_rate = None  # 増配率
-        is_earnings_forecast_revision = None  # 業績予想の修正
-        forecast_ordinary_income_growth_rate = None  # 予想経常利益増益率
-        result_total_dividend = None  # 前期配当
-        forecast_total_dividend = None  # 予想配当
         # endregion
 
         # ix_non_numericがNoneの場合は、ix_non_numericを設定する
         if self.ix_non_numeric is None:
             self.__set_ix_non_numeric()
-        # ix_non_fractionがNoneの場合は、ix_non_fractionを設定する
-        if self.ix_non_fraction is None:
-            self.__set_ix_non_fraction()
 
         # ix_non_numericからデータを取得
         non_numeric_lists: List[List[IxNonNumeric]] = self.ix_non_numeric
@@ -221,11 +211,9 @@ class IXBRLManager(BaseXbrlManager):
 
         # 非数値情報からマッピングとデータ取得処理を行う
         for item in non_numeric_list:
-            continue
             # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
 
             # region 基本情報の取得
-            head_item_key = item.head_item_key  # XBRL ID
             report_type = item.report_type  # 提出種別
             # endregion
 
@@ -247,7 +235,9 @@ class IXBRLManager(BaseXbrlManager):
                 current_period = item.value
             elif re.search(r".*URL.*", item.name):  # URL
                 url = item.value
-            elif re.search(r".*FiscalYearEnd$", item.name):  # 決算期
+            elif re.search(
+                r"(?=.*\_FiscalYearEnd.*)", item.name
+            ):  # 決算期
                 fiscal_year_end = item.value
             elif re.search(r".*Tel$", item.name):  # 電話番号
                 tel = item.value
@@ -294,135 +284,25 @@ class IXBRLManager(BaseXbrlManager):
                 is_sfp = True
             # endregion
 
-            # region 経営情報の取得
-            # endregion
-
-            # region 配当情報の取得
-            elif re.search(  # 配当の修正
-                r".*CorrectionOfDividendForecastIn.*$", item.name
-            ):
-                is_dividend_revision = item.value == "true"
-            # endregion
-
-            # region 業績予想情報の取得
-            elif re.search(  # 業績予想の修正
-                r".*CorrectionOf.*FinancialForecastIn.*$", item.name
-            ):
-                is_earnings_forecast_revision = item.value == "true"
-            # endregion
-
-        # 連結・非連結の場合の正規表現を設定
-        if company_name:
-            if re.search(r"(?=.*\(連結\).*)", company_name):  # 連結の場合
-                consolidated_pattern = r"(?=.*_ConsolidatedMember.*)"
-            elif re.search(
-                r"(?=.*\(非連結\).*)", company_name
-            ):  # 個別の場合
-                consolidated_pattern = r"(?=.*_NonConsolidatedMember.*)"
-            else:
-                consolidated_pattern = r""
-
-        # ix_non_fractionからデータを取得
-        non_fraction_lists: List[List[IxNonFraction]] = (
-            self.ix_non_fraction
-        )
-        non_fraction_list = [
-            item for items in non_fraction_lists for item in items
-        ]
-
-        # 非分数情報からマッピングとデータ取得処理を行う
-        for item in non_fraction_list:
-            continue
-            # 機能を追加する際は、ここにマッピングとデータ取得処理を追加してください。
-
-            # region 経営成績情報の取得
-            # endregion
-
-            # region 財政状態情報の取得
-            # endregion
-
-            # region 配当情報の取得
-            if re.search(r".*DividendPerShare$", item.name):  # 増配率
-                if current_period == "FY":  # 本決算の場合
-                    if re.search(
-                        r"(?=.*Current.*)(?=.*AnnualMember.*)(?=.*Result.*)",
-                        item.context,
-                    ):
-                        result_total_dividend = item.numeric
-                    elif re.search(
-                        r"(?=.*Next.*)(?=.*AnnualMember.*)(?=.*Forecast.*)",
-                        item.context,
-                    ):
-                        forecast_total_dividend = item.numeric
-                else:  # 通期以外の場合
-                    if re.search(
-                        r"(?=.*Prior.*)(?=.*AnnualMember.*)(?=.*Result.*)",
-                        item.context,
-                    ):
-                        result_total_dividend = item.numeric
-                    elif re.search(
-                        r"(?=.*Current.*)(?=.*AnnualMember.*)(?=.*Forecast.*)",
-                        item.context,
-                    ):
-                        forecast_total_dividend = item.numeric
-            # endregion
-
-            # region 業績予想情報の取得
-            elif re.search(  # 予想経常利益増益率
-                r"(?=.*ChangeIn.*)(?=.*OrdinaryIncome.*)|(?=.*ChangeIn.*)(?=.*ProfitBeforeTax.*)",
-                item.name,
-            ):
-                if current_period == "FY":  # 本決算の場合
-                    if re.search(
-                        r"(?=.*NextYear.*)(?=.*Forecast.*)"
-                        + consolidated_pattern,
-                        item.context,
-                    ):
-                        if item.display_numeric and item.display_scale:
-                            forecast_ordinary_income_growth_rate = (
-                                item.numeric + item.display_scale
-                            )
-                else:  # 通期以外の場合
-                    if re.search(
-                        r"(?=.*CurrentYear.*)(?=.*Forecast.*)"
-                        + consolidated_pattern,
-                        item.context,
-                    ):
-                        if item.display_numeric and item.display_scale:
-                            forecast_ordinary_income_growth_rate = (
-                                item.numeric + item.display_scale
-                            )
-            # endregion
-
-        # region 増配率を計算（小数点第２位で四捨五入）
-        try:
-            dividend_increase_rate = round(
-                (
-                    (
-                        float(forecast_total_dividend)
-                        - float(result_total_dividend)
-                    )
-                    / float(result_total_dividend)
-                )
-                * 100,
-                2,
-            )
-            dividend_increase_rate = f"{dividend_increase_rate}%"
-        except ZeroDivisionError:
-            dividend_increase_rate = None
-        except TypeError:
-            dividend_increase_rate = None
-        # if re.search(
-        #     r"(?=.*ed.*)|(?=.*rvdf.*)", report_type
-        # ):  # 決算短信か配当予想修正の場合
-        #     if not forecast_total_dividend:
-        #         dividend_increase_rate = "未公表"
-        #     elif forecast_total_dividend == "0":
-        #         dividend_increase_rate = "無配"
-        # endregion
-
         ix_header = IxHeader(
             item_key=self.head_item_key,
+            company_name=company_name,
+            securities_code=securities_code,
+            document_name=document_name,
+            reporting_date=reporting_date,
+            current_period=current_period,
+            report_type=report_type,
+            listed_market=listed_market,
+            market_section=market_section,
+            url=url,
+            is_bs=is_bs,
+            is_pl=is_pl,
+            is_cf=is_cf,
+            is_ci=is_ci,
+            is_sce=is_sce,
+            is_sfp=is_sfp,
+            fy_year_end=fiscal_year_end,
+            tel=tel,
             # ...機能を追加する際は、ここに新しい変数を追加してください。
         )
 

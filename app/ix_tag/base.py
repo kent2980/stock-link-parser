@@ -44,11 +44,16 @@ class SourceFile(BaseTag):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.name and self.head_item_key:
+        key = None
+        if self.head_item_key:
+            key = self.head_item_key
+        elif self.url:
+            key = self.url
+        if key:
             self.item_key = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_DNS,
-                    f"{self.name}_{self.head_item_key}",
+                    f"{self.name}_{key}",
                 )
             )
 

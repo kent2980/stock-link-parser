@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         output_oath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        zip_path = "/Users/user/Documents/tdnet/xbrl/20241031"
+        zip_path = "/Users/user/Documents/tdnet/xbrl/20241101"
         insert = Insert(output_oath)
         insert.insert_xbrl_dir(zip_path)
 

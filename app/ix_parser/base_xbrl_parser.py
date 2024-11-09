@@ -1,5 +1,6 @@
 import fcntl
 import os
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +13,9 @@ from bs4 import BeautifulSoup as bs
 from pandas import DataFrame
 
 from app.exception import TypeOfXBRLIsDifferent
+from app.exception.xbrl_parser_exception import (
+    AlreadyExistSourceFileIdError,
+)
 from app.ix_tag import BaseTag, SourceFile
 from app.utils.utils import Utils
 
@@ -24,6 +28,7 @@ class BaseXBRLParser:
         xbrl_url,
         output_path=None,
         head_item_key: Optional[str] = None,
+        is_exist_source_file_id_api_url: Optional[str] = None,
     ):
 
         # urlの検証を行います
@@ -41,13 +46,22 @@ class BaseXBRLParser:
         self.__source_file: Optional[SourceFile] = (
             None  # XBRLのソースファイル
         )
+        self.__is_exist_source_file_id_api_url = (
+            is_exist_source_file_id_api_url
+        )
+
+        # ソースファイルを設定
+        self.__init_source_file_id()
+        self._set_source_file(self.basename)
+        if self.__is_exist_requests():
+            raise AlreadyExistSourceFileIdError(
+                f"既に存在するソースファイルIDです。[{self.source_file_id}]"
+            )
 
         # 初期化メソッド
         self.__init_head_item_key()
         self.__init_xbrl_type()
         self.__init_parser()
-        self.__init_source_file_id()
-        self._set_source_file(self.basename)
 
     @property
     def basename(self):
@@ -257,3 +271,18 @@ class BaseXBRLParser:
     def to_dict(self):
         """辞書形式で出力する"""
         return self.to_DataFrame().to_dict(orient="records")
+
+    def __is_exist_requests(self):
+        """リクエストが存在するか判定する"""
+        if self.__is_exist_source_file_id_api_url:
+            key = self.source_file.id
+            if self.source_file.type == "url":
+                response = requests.get(
+                    self.__is_exist_source_file_id_api_url,
+                    params={"source_file_id": key},
+                )
+                if response.status_code == 200:
+                    return True
+                else:
+                    return False
+        return False

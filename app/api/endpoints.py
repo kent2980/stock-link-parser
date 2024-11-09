@@ -35,6 +35,8 @@ POST_QUALITATIVE = "/xbrl/qualitative/list/"
 # UPDATE エンドポイント
 UPDATE_HEAD_ACTIVE = "/xbrl/ix/head/active/"
 """ IX_HEAD_TITLEテーブルを有効化するエンドポイント """
+UPDATE_HEAD_GENERATE = "/xbrl/ix/head/generate/"
+""" IX_HEAD_TITLEテーブルを生成するエンドポイント """
 
 # GET エンドポイント
 IS_CHECK_MODEL = "/xbrl/check/model/"
