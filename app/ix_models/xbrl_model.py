@@ -50,7 +50,7 @@ class XBRLModel(BaseXbrlModel):
 
     def _init_manager(self, manager_class: BaseXbrlManager):
         try:
-            if isinstance(manager_class, LabelManager):
+            if manager_class.__name__ == "LabelManager":
                 return manager_class(
                     self.directory_path,
                     self.output_path,

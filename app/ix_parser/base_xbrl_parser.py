@@ -51,6 +51,7 @@ class BaseXBRLParser:
         )
 
         # ソースファイルを設定
+        self.__init_head_item_key()
         self.__init_source_file_id()
         self._set_source_file(self.basename)
         if self.__is_exist_requests():
@@ -59,7 +60,6 @@ class BaseXBRLParser:
             )
 
         # 初期化メソッド
-        self.__init_head_item_key()
         self.__init_xbrl_type()
         self.__init_parser()
 
@@ -274,7 +274,9 @@ class BaseXBRLParser:
 
     def __is_exist_requests(self):
         """リクエストが存在するか判定する"""
+
         if self.__is_exist_source_file_id_api_url:
+
             key = self.source_file.id
             if self.source_file.type == "url":
                 response = requests.get(

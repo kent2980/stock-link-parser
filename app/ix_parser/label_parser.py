@@ -21,14 +21,14 @@ class LabelParser(BaseXBRLParser):
             xbrl_url,
             output_path,
             head_item_key,
-            is_exist_source_file_id_api_url,
+            is_exist_source_file_id_api_url=is_exist_source_file_id_api_url,
         )
 
         # ファイル名を検証
         self._assert_valid_basename("lab.xml", "lab-en.xml")
 
         # 初期化メソッド
-        # self._set_source_file(self.basename)
+        self._set_source_file(self.basename)
 
     def link_labels(self):
         """link:label要素を取得するメソッド。
