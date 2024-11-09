@@ -4,9 +4,7 @@ import sys
 from app.api.insert import Insert
 
 # ロックファイルのパスを指定
-lock_file = (
-    "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/script.lock"
-)
+lock_file = "/home/kent2980/docker_cont/stock-link-parser/script.lock"
 
 if __name__ == "__main__":
     # ロックファイルが存在するか確認
@@ -19,9 +17,10 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        outputPath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        targetDir = "/Users/user/Documents/tdnet/xbrl"
-        insert = Insert(outputPath)
+        outputPath = "/home/kent2980/docker_cont/stock-link-parser/output"
+        targetDir = "/home/kent2980/doc/tdnet"
+        api_base_url = "https://api.fs-stock.net"
+        insert = Insert(outputPath, api_base_url)
         insert.insert_xbrl_dir(targetDir)
 
     finally:
