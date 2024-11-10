@@ -20,7 +20,7 @@ if __name__ == "__main__":
     try:
         output_path = "/home/kent2980/docker_cont/stock-link-parser/output"
         year = 2024
-        month = 11
+        month = 10
 
         # 指定された月の日付をループで取得
         for day in range(31, 0, -1):
