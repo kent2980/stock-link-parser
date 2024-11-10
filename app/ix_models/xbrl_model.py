@@ -249,4 +249,4 @@ class XBRLModel(BaseXbrlModel):
         # ixbrl_managerの初期化が完了するまで待機
         self.ixbrl_manager_initialized.wait()
         header = self.ix_header().__dict__
-        return f" - [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"
+        return f" - {header['reporting_date']} [{header['securities_code']}] {header['company_name']} <{header['document_name']}>"
