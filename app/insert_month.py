@@ -1,12 +1,12 @@
+import datetime
 import os
+import re
 import sys
 
 from app.api.insert import Insert
 
 # ロックファイルのパスを指定
-lock_file = (
-    "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/script.lock"
-)
+lock_file = "/home/kent2980/docker_cont/stock-link-parser/script.lock"
 
 if __name__ == "__main__":
     # ロックファイルが存在するか確認
@@ -19,12 +19,16 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        outputPath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        zip_path = "/Users/user/Documents/tdnet/xbrl/20241108"
-        api_base_url = "http://localhost:8000"
-        insert = Insert(outputPath, api_base_url)
-        insert.insert_xbrl_dir(zip_path)
-
+        outputPath = "/home/kent2980/docker_cont/stock-link-parser/output"
+        month = 202411
+        # 10月のDate型をループで取得
+        for i in range(1, 32).__reversed__():
+            date = datetime.date(month, i)
+            date_str = date.strftime("%Y%m%d")
+            targetDir = f"/home/kent2980/doc/tdnet/{date_str}"
+            api_base_url = "https://api.fs-stock.net"
+            insert = Insert(outputPath, api_base_url)
+            insert.insert_xbrl_dir(targetDir)
     finally:
         # 処理が終了したらロックファイルを削除
         if os.path.exists(lock_file):
