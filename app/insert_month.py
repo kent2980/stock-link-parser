@@ -1,6 +1,5 @@
 import datetime
 import os
-import re
 import sys
 
 from app.api.insert import Insert
@@ -19,16 +18,23 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        outputPath = "/home/kent2980/docker_cont/stock-link-parser/output"
-        month = 202411
-        # 10月のDate型をループで取得
-        for i in range(1, 32).__reversed__():
-            date = datetime.date(month, i)
+        output_path = "/home/kent2980/docker_cont/stock-link-parser/output"
+        year = 2024
+        month = 11
+
+        # 指定された月の日付をループで取得
+        for day in range(31, 0, -1):
+            try:
+                date = datetime.date(year, month, day)
+            except ValueError:
+                # 無効な日付（例：11月31日）をスキップ
+                continue
+
             date_str = date.strftime("%Y%m%d")
-            targetDir = f"/home/kent2980/doc/tdnet/{date_str}"
+            target_dir = f"/home/kent2980/doc/tdnet/{date_str}"
             api_base_url = "https://api.fs-stock.net"
-            insert = Insert(outputPath, api_base_url)
-            insert.insert_xbrl_dir(targetDir)
+            insert = Insert(output_path, api_base_url)
+            insert.insert_xbrl_dir(target_dir)
     finally:
         # 処理が終了したらロックファイルを削除
         if os.path.exists(lock_file):
