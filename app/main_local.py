@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         outputPath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        zip_path = "/Users/user/Documents/tdnet/xbrl/20241031"
+        zip_path = "/Users/user/Documents/tdnet/20241213"
         api_base_url = "http://localhost:8000"
         insert = Insert(outputPath, api_base_url)
         insert.insert_xbrl_dir(zip_path)

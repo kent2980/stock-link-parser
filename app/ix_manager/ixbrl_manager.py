@@ -197,6 +197,7 @@ class IXBRLManager(BaseXbrlManager):
         fiscal_year_end = None
         tel = None
         report_type = None
+        specific_business = None
         # endregion
 
         # ix_non_numericがNoneの場合は、ix_non_numericを設定する
@@ -241,6 +242,8 @@ class IXBRLManager(BaseXbrlManager):
                 fiscal_year_end = item.value
             elif re.search(r".*Tel$", item.name):  # 電話番号
                 tel = item.value
+            elif re.search(r"SpecificBusiness", item.name):  # 特定事業
+                specific_business = item.value == "true"
             # endregion
 
             # region 取引所情報の取得
@@ -303,6 +306,7 @@ class IXBRLManager(BaseXbrlManager):
             is_sfp=is_sfp,
             fy_year_end=fiscal_year_end,
             tel=tel,
+            specific_business=specific_business,
             # ...機能を追加する際は、ここに新しい変数を追加してください。
         )
 

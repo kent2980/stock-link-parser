@@ -84,6 +84,7 @@ class IxHeader(BaseTag):
     is_sfp: Optional[bool] = Field(default=None)
     fy_year_end: Optional[str] = Field(default=None)
     tel: Optional[str] = Field(default=None)
+    specific_business: Optional[bool] = Field(default=None)
 
 
 class IxContext(BaseTag):

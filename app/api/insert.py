@@ -105,7 +105,7 @@ class Insert:
 
     def set_head_active(self, head_item_key):
         url = self.url + ep.UPDATE_HEAD_ACTIVE
-        response = requests.put(
+        response = requests.patch(
             url, params={"head_item_key": head_item_key}
         )
         return response
@@ -121,7 +121,7 @@ class Insert:
 
     def update_head_generate(self, head_item_key):
         url = self.url + ep.UPDATE_HEAD_GENERATE
-        response = requests.put(
+        response = requests.patch(
             url, params={"head_item_key": head_item_key}
         )
         return response
