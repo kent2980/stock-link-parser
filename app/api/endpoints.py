@@ -1,3 +1,4 @@
+# region IX Table Endpoints
 # POST エンドポイント
 POST_HEAD_TITLES = "/xbrl/ix/head/list/"
 """ IX_HEAD_TITLEテーブルに複数データを追加するエンドポイント """
@@ -83,3 +84,19 @@ DELETE_LABEL_ARCS = "/xbrl/link/lab/arc/delete/"
 """ LINK_LABEL_ARCテーブルのデータを削除するエンドポイント """
 DELETE_LABEL_VALUES = "/xbrl/link/lab/value/delete/"
 """ LINK_LABEL_VALUEテーブルのデータを削除するエンドポイント """
+# endregion
+
+# region Jpx Table Endpoints
+
+# POST エンドポイント
+POST_JPX_STOCK_INFO = "/jpx/stock_info/"
+""" JPX_STOCK_INFOテーブルにデータを追加するエンドポイント """
+POST_JPX_STOCK_INFOS = "/jpx/stock_info/list/"
+""" JPX_STOCK_INFOテーブルに複数データを追加するエンドポイント """
+# GET エンドポイント
+GET_JPX_STOCK_INFO = "/jpx/stock_info/"
+""" JPX_STOCK_INFOテーブルのデータを取得するエンドポイント """
+GET_JPX_STOCK_INFO_LIST = "/jpx/stock_info/list/"
+""" JPX_STOCK_INFOテーブルの全てのデータを取得するエンドポイント """
+
+# endregion

@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 
-from app.api.insert import Insert
+from app.api.ix.insert import Insert
 
 # ロックファイルのパスを指定
 lock_file = (

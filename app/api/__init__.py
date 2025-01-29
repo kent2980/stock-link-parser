@@ -1,6 +1,3 @@
-from . import endpoints
+from . import endpoints, ix, jpx
 
-from.insert import Insert
-from .settings import Settings
-
-__all__ = ["Insert", "endpoints", "Settings"]
+__all__ = ["endpoints", "ix", "jpx"]
