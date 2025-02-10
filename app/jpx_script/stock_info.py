@@ -34,7 +34,7 @@ class StockInfo:
 
     def get_info_to_df(self):
         """東証上場銘柄一覧をデータフレームに変換する"""
-        # self.save_pathからエクセルファイルを読み込んで処理する処理
+        # self.save_pathからエクセルファイルを読み込んで処理する処理＠
         df = pd.read_excel(self.save_path)
         df = self.__convert_full_to_half(df)
         df.columns = [

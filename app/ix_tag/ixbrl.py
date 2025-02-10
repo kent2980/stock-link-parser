@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -10,7 +10,7 @@ class IxNonNumeric(BaseTag):
     """非数値タグの情報を格納するクラス"""
 
     head_item_key: Optional[str] = Field(default=None)
-    context: Optional[str] = Field(default=None)
+    context: Optional[List[str]] = Field(default=None)
     name: Optional[str] = Field(default=None)
     xsi_nil: Optional[bool] = Field(default=None)
     escape: Optional[bool] = Field(default=None)
@@ -36,7 +36,7 @@ class IxNonFraction(BaseTag):
     """非分数タグの情報を格納するクラス"""
 
     head_item_key: Optional[str] = Field(default=None)
-    context: Optional[str] = Field(default=None)
+    context: Optional[List[str]] = Field(default=None)
     name: Optional[str] = Field(default=None)
     unit_ref: Optional[str] = Field(default=None)
     xsi_nil: Optional[bool] = Field(default=None)

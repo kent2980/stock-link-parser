@@ -76,11 +76,15 @@ class Insert:
     def def_locs(self, data):
         url = self.url + ep.POST_DEF_LOCS
         response = requests.post(url, json={"data": data})
+        if response.status_code != 200:
+            print(f"エラーが発生しました。(defLocs):{response.json()}")
         return response
 
     def def_arcs(self, data):
         url = self.url + ep.POST_DEF_ARCS
         response = requests.post(url, json={"data": data})
+        if response.status_code != 200:
+            print(f"エラーが発生しました。(defArcs){response.json()}")
         return response
 
     def sources(self, data):

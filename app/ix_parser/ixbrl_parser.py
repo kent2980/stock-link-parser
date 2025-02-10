@@ -133,7 +133,7 @@ class IxbrlParser(BaseXBRLParser):
         for tag in tags:
 
             # _____attr[contextRef]
-            context = tag.get("contextRef")
+            context = str(tag.get("contextRef")).split("_")
 
             # _____attr[xsi:nil]
             xsi_nil = True if tag.get("xsi:nil") == "true" else False
@@ -263,7 +263,7 @@ class IxbrlParser(BaseXBRLParser):
             )
 
             # _____attr[contextRef]
-            context = tag.get("contextRef")
+            context = str(tag.get("contextRef")).split("_")
 
             # _____attr[decimals]
             decimals = tag.get("decimals")
