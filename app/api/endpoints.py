@@ -40,50 +40,11 @@ UPDATE_HEAD_GENERATE = "/xbrl/ix/head/generate/"
 """ IX_HEAD_TITLEテーブルを生成するエンドポイント """
 
 # GET エンドポイント
-IS_CHECK_MODEL = "/xbrl/check/model/"
-""" すべてのテーブルにhead_item_keyが存在するか確認するエンドポイント """
-IS_FILE_PATH = "/xbrl/is/file_path/"
-""" IX_FILE_PATHテーブルにデータが存在するか確認するエンドポイント """
-SOURCE_FILE_ID_LIST = "/xbrl/source/id_list/"
-""" SOURCEテーブルのFILE_IDを取得するエンドポイント """
 IS_ACTIVE_HEAD = "/xbrl/ix/head/is_active/"
 """ IX_HEAD_TITLEテーブルに有効なデータが存在するか確認するエンドポイント """
 IS_EXITS_SOURCE_FILE_ID = "/xbrl/is/exits/source_file_id/"
 """ SourceFileテーブルにSOURCE_FILE_IDが存在するか確認するエンドポイント """
 
-# DELETE エンドポイント
-DELETE_FILE_PATH = "/xbrl/ix/file_path/delete/"
-""" IX_FILE_PATHテーブルのデータを削除するエンドポイント """
-DELETE_HEAD_TITLES = "/xbrl/ix/head/delete/"
-""" IX_HEAD_TITLEテーブルのデータを削除するエンドポイント """
-DELETE_NON_NUMERICS = "/xbrl/ix/non_numeric/delete/"
-""" IX_NON_NUMERICテーブルのデータを削除するエンドポイント """
-DELETE_NON_FRACTIONS = "/xbrl/ix/non_fraction/delete/"
-""" IX_NON_FRACTIONテーブルのデータを削除するエンドポイント """
-DELETE_CAL_LOCS = "/xbrl/link/cal/loc/delete/"
-""" LINK_CAL_LOCテーブルのデータを削除するエンドポイント """
-DELETE_CAL_ARCS = "/xbrl/link/cal/arc/delete/"
-""" LINK_CAL_ARCテーブルのデータを削除するエンドポイント """
-DELETE_PRE_LOCS = "/xbrl/link/pre/loc/delete/"
-""" LINK_PRE_LOCテーブルのデータを削除するエンドポイント """
-DELETE_PRE_ARCS = "/xbrl/link/pre/arc/delete/"
-""" LINK_PRE_ARCテーブルのデータを削除するエンドポイント """
-DELETE_DEF_LOCS = "/xbrl/link/def/loc/delete/"
-""" LINK_DEF_LOCテーブルのデータを削除するエンドポイント """
-DELETE_DEF_ARCS = "/xbrl/link/def/arc/delete/"
-""" LINK_DEF_ARCテーブルのデータを削除するエンドポイント """
-DELETE_SOURCES = "/xbrl/source/delete/"
-""" SOURCEテーブルのデータを削除するエンドポイント """
-DELETE_SCHEMAS = "/xbrl/schema/linkbase/delete/"
-""" SCHEMAテーブルのデータを削除するエンドポイント """
-DELETE_QUALITATIVE = "/xbrl/qualitative/delete/"
-""" QUALITATIVEテーブルのデータを削除するエンドポイント """
-DELETE_LABEL_LOCS = "/xbrl/link/lab/loc/delete/"
-""" LINK_LABEL_LOCテーブルのデータを削除するエンドポイント """
-DELETE_LABEL_ARCS = "/xbrl/link/lab/arc/delete/"
-""" LINK_LABEL_ARCテーブルのデータを削除するエンドポイント """
-DELETE_LABEL_VALUES = "/xbrl/link/lab/value/delete/"
-""" LINK_LABEL_VALUEテーブルのデータを削除するエンドポイント """
 # endregion
 
 # region Jpx Table Endpoints
@@ -96,7 +57,19 @@ POST_JPX_STOCK_INFOS = "/jpx/stock_info/list/"
 # GET エンドポイント
 GET_JPX_STOCK_INFO = "/jpx/stock_info/"
 """ JPX_STOCK_INFOテーブルのデータを取得するエンドポイント """
-GET_JPX_STOCK_INFO_LIST = "/jpx/stock_info/list/"
+GET_JPX_STOCK_INFO_LIST = "/jpx/stock_info/"
 """ JPX_STOCK_INFOテーブルの全てのデータを取得するエンドポイント """
 
+# endregion
+
+
+# region Wiki Endpoints
+# GET エンドポイント
+GET_WIKI_All = "/wiki/"
+""" stock_wikiテーブルから全てのデータを取得するエンドポイント """
+GET_WIKI_FROM_CODE = "/wiki/"
+""" stock_wikiテーブルからコードを指定してデータを取得するエンドポイント """
+# POST エンドポイント
+POST_WIKI = "/wiki/"
+""" stock_wikiテーブルにデータを追加するエンドポイント """
 # endregion

@@ -18,6 +18,8 @@ pymysql = "^1.1.1"
 datetimejp = "^1.1.0"
 pydantic = "^2.9.2"
 pydantic-settings = "^2.6.0"
+wikipedia = "^1.4.0"
+pyshorteners = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
