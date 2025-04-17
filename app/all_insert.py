@@ -19,7 +19,7 @@ if __name__ == "__main__":
     try:
         outputPath = "/home/kent2980/docker_cont/stock-link-parser/output"
         targetDir = "/home/kent2980/doc/tdnet"
-        api_base_url = "https://api.fs-stock.net"
+        api_base_url = "http://172.17.0.1/api/"
         insert = Insert(outputPath, api_base_url)
         insert.insert_xbrl_dir(targetDir)
 
