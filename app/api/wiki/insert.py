@@ -5,6 +5,19 @@ import requests
 from app.api import endpoints as ep
 from app.stock_info_api.wiki_reader import NotDataFoundError, WikiReader
 
+extract_urls = [
+    "https://ja.wikipedia.org/wiki/TOKYO_PRO_Market",
+    "https://ja.wikipedia.org/wiki/日経平均株価",
+    "https://ja.wikipedia.org/wiki/ダウ平均株価",
+    "https://ja.wikipedia.org/wiki/JPX日経中小型株指数",
+    "https://ja.wikipedia.org/wiki/MSCI",
+    "https://ja.wikipedia.org/wiki/東京証券取引所",
+    "https://ja.wikipedia.org/wiki/東京証券取引所スタンダード市場上場企業一覧",
+    "https://ja.wikipedia.org/wiki/東京証券取引所グロース市場上場企業一覧",
+    "https://ja.wikipedia.org/wiki/世界金融危機_(2007年-2010年)",
+    "https://ja.wikipedia.org/wiki/ヘラクレス_(有価証券市場)",
+]
+
 
 class Insert:
     """APIにデータを挿入するためのクラス
@@ -23,37 +36,69 @@ class Insert:
 
     def load_wiki(self):
         wiki = WikiReader()
+        i = 0
         for item in self.data:
-            code, name, description, url = None, None, None, None
+            i += 1
+            description, url = None, None
+            code, name, industry_code = (
+                item.get("code"),
+                item.get("name"),
+                item.get("industry_33_code"),
+            )
+            if industry_code is None:
+                print(
+                    f"対象外のデータです。: {code}, {name}",
+                    end="\n\n",
+                )
+                continue
+            # wikiテーブルにデータが存在する場合はスキップ
+            url = self.url + ep.GET_WIKI_FROM_CODE + code
+            response = requests.get(url)
+            if response.status_code == 200:
+                print(
+                    f"データが既に存在しています: {code}, {name}",
+                    end="\n\n",
+                )
+                continue
+
+            # wikiテーブルにデータを追加
             try:
-                code, name = item.get("code"), item.get("name")
-                wiki.word = f"{name} {code} 市場情報"
+                wiki.word = f"{name}"
                 description = wiki.get_description()
                 wiki_url = wiki.get_url()
+                if wiki_url in extract_urls:
+                    print("対象外のURLです", end="\n\n")
+                    continue
                 data = {
                     "code": code,
                     "name": name,
                     "description": description,
                     "url": wiki_url,
                 }
-            except NotDataFoundError as e:
-                code, name = item.get("code"), item.get("name")
-                data = {
-                    "code": code,
-                    "name": name,
-                    "description": None,
-                    "url": None,
-                }
-            url = self.url + ep.POST_WIKI
-            response = requests.post(url, json=data)
-            try:
-                response_json = response.json()
-                print(response_json)
-            except requests.exceptions.JSONDecodeError:
-                print("JSONDecodeError: Invalid JSON response")
-                print(response.text)
-            # 1秒待機
-            sleep(3)
+                print(data)
+                url = self.url + ep.POST_WIKI
+                response = requests.post(url, json=data)
+                if (
+                    response.status_code == 201
+                    or response.status_code == 200
+                ):
+                    print(f"データを追加しました: {data}", end="\n\n")
+                elif response.status_code == 400:
+                    print(
+                        f"データが既に存在しています: {data}", end="\n\n"
+                    )
+                else:
+                    print(
+                        f"データの追加に失敗しました: {data}", end="\n\n"
+                    )
+            except NotDataFoundError:
+                print(
+                    f"データが見つかりませんでした: {code}, {name}",
+                    end="\n\n",
+                )
+                continue
+            finally:
+                sleep(1)
 
     @property
     def data(self):

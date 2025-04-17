@@ -1,4 +1,5 @@
-import pyshorteners
+from urllib.parse import unquote
+
 import wikipedia
 
 
@@ -21,7 +22,7 @@ class WikiReader:
 
     def get_description(self):
         try:
-            return wikipedia.summary(self.word)
+            return wikipedia.summary(self.word, auto_suggest=False)
         except wikipedia.exceptions.DisambiguationError as e:
             return f"Disambiguation error: {e.options}"
         except wikipedia.exceptions.PageError:
@@ -31,10 +32,10 @@ class WikiReader:
 
     def get_url(self):
         try:
-            page = wikipedia.page(self.word)
+            page = wikipedia.page(self.word, auto_suggest=False)
             url = page.url
-            shortener = pyshorteners.Shortener()
-            return shortener.tinyurl.short(url)
+            encoded_url = unquote(url)
+            return encoded_url
         except wikipedia.exceptions.DisambiguationError as e:
             return f"Disambiguation error: {e.options}"
         except wikipedia.exceptions.PageError:
