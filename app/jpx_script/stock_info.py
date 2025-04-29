@@ -81,10 +81,11 @@ class StockInfo:
         print(f"CSVファイルを保存しました: {save_path}")
 
 
-# 使用例
-save_path = "output/excel/data_j.xls"
-stock_info = StockInfo(save_path)
-stock_info.get_info_to_df()
-json_data = stock_info.get_info_to_json()
-save_path = "output/excel/data_j.csv"
-stock_info.convert_to_csv(save_path)
+if __name__ == "__main__":
+    # 使用例
+    save_path = "output/excel/data_j.xls"
+    stock_info = StockInfo(save_path)
+    stock_info.get_info_to_df()
+    json_data = stock_info.get_info_to_json()
+    save_path = "output/excel/data_j.csv"
+    stock_info.convert_to_csv(save_path)
