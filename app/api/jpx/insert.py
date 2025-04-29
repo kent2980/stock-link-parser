@@ -4,7 +4,6 @@ import requests
 
 from app.api import endpoints as ep
 from app.jpx_script.stock_info import StockInfo as si
-from app.jpx_script.stock_info import save_path
 
 
 class Insert:
