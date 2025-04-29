@@ -29,6 +29,6 @@ class Insert:
 
 
 if __name__ == "__main__":
-    api_base_url = "http://localhost:8000"
+    api_base_url = "http://172.17.0.1"
     insert = Insert(api_base_url)
     insert.jpx_stock_info()
