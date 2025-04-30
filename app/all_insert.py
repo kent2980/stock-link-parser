@@ -5,7 +5,7 @@ from app.api.ix.insert import Insert
 
 # ロックファイルのパスを指定
 lock_file = (
-    "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/script.lock"
+    "/home/kent2980/app/stock-link-parser/script.lock"
 )
 
 if __name__ == "__main__":
@@ -19,9 +19,9 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        outputPath = "/Users/user/Vscode/XBRL_Parse_Project/stock-link-parser/output"
-        targetDir = "/Volumes/conoha_document/tdnet/2025年/04月"
-        api_base_url = "http://172.17.0.1"
+        outputPath = "/home/kent2980/app/stock-link-parser/output"
+        targetDir = "/home/kent2980/doc/tdnet/2025年/04月"
+        api_base_url = "http://157.7.78.166"
         insert = Insert(outputPath, api_base_url)
         insert.insert_xbrl_dir(targetDir)
 

@@ -5,7 +5,7 @@ import sys
 from app.api.ix.insert import Insert
 
 # ロックファイルのパスを指定
-lock_file = "/home/kent2980/docker_cont/stock-link-parser/script.lock"
+lock_file = "/home/kent2980/app/stock-link-parser/script.lock"
 
 if __name__ == "__main__":
     # ロックファイルが存在するか確認
@@ -18,9 +18,9 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        output_path = "/home/kent2980/docker_cont/stock-link-parser/output"
-        year = 2024
-        month = 10
+        output_path = "/home/kent2980/app/stock-link-parser/output"
+        year = 2025
+        month = 4
         loop = True
         for _month in range(month, 0, -1):
             # 指定された月の日付をループで取得
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
                 date_str = date.strftime("%Y%m%d")
                 target_dir = f"/home/kent2980/doc/tdnet/{date_str}"
-                api_base_url = "https://api.fs-stock.net"
+                api_base_url = "http://172.17.0.1"
                 insert = Insert(output_path, api_base_url)
                 insert.insert_xbrl_dir(target_dir)
             if not loop:
