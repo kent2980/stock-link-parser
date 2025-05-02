@@ -47,7 +47,7 @@ if __name__ == "__main__":
                 print(f"処理中の日付: {today.strftime('%Y-%m-%d')}")
                 insert = Insert(outputPath, api_base_url)
                 targetDir = Path.joinpath(
-                    Path(target), Path(today.strftime("%Y-%m-%d"))
+                    Path(target), Path(today.strftime("%Y%m%d"))
                 )
 
                 # targetDirが存在するか確認
