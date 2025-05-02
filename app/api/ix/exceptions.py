@@ -15,7 +15,5 @@ class ApiInsertionException(Exception):
         self,
         message="APIへのデータ挿入中にエラーが発生しました。",
     ):
-        self.endpoint = endpoint
-        self.status_code = status_code
-        self.message = f"{message} エンドポイント: {endpoint}, ステータスコード: {status_code}"
+        self.message = f"{message}"
         super().__init__(self.message)
