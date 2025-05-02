@@ -17,6 +17,14 @@ if __name__ == "__main__":
     with open(lock_file, "w") as f:
         f.write("")
 
+    # コマンドライン引数を取得
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        print(f"引数を取得しました: {arg}")
+    else:
+        print("引数が指定されていません。")
+        sys.exit(1)  # 実行をスキップ
+
     try:
         outputPath = "/home/kent2980/app/stock-link-parser/output"
         today = datetime.now().strftime("%Y%m%d")  # 出力例: 20210601
