@@ -13,8 +13,6 @@ class ApiInsertionException(Exception):
 
     def __init__(
         self,
-        endpoint,
-        status_code,
         message="APIへのデータ挿入中にエラーが発生しました。",
     ):
         self.endpoint = endpoint
