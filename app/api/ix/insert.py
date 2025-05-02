@@ -150,51 +150,51 @@ class Insert:
             print(f"Success: {model}")
 
 
-def insert_xbrl_dir(self, dir_path):
-    """
-    <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
-    <p>このメソッドは複数のXBRLファイルを解析する際に使用します。</p>
-    <h3>Attributes:</h3>
-        dir_path (str): XBRLファイルのディレクトリのパス
-    <h3>Raises:</h3>
-        ApiInsertionException: 全てのAPI挿入が失敗した場合
-    """
+    def insert_xbrl_dir(self, dir_path):
+        """
+        <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
+        <p>このメソッドは複数のXBRLファイルを解析する際に使用します。</p>
+        <h3>Attributes:</h3>
+            dir_path (str): XBRLファイルのディレクトリのパス
+        <h3>Raises:</h3>
+            ApiInsertionException: 全てのAPI挿入が失敗した場合
+        """
 
-    zip_paths = list(Path(dir_path).rglob("*.zip"))
+        zip_paths = list(Path(dir_path).rglob("*.zip"))
 
-    is_source_file_id_api_url = self.url + ep.IS_EXITS_SOURCE_FILE_ID
+        is_source_file_id_api_url = self.url + ep.IS_EXITS_SOURCE_FILE_ID
 
-    all_push_results = []  # 全てのis_push結果を格納するリスト
+        all_push_results = []  # 全てのis_push結果を格納するリスト
 
-    with tqdm(total=len(zip_paths)) as pbar:
-        for zip_path in zip_paths:
-            head_item_key = Utils.string_to_uuid(Path(zip_path).name)
-            if self.is_active_head(head_item_key):
-                pbar.write(f"Already exists: {zip_path}")
-                pbar.update(1)
-                continue
-            else:
-                try:
-                    model = XBRLModel(
-                        zip_path.as_posix(),
-                        self.output_path,
-                        is_exist_source_file_id_api_url=is_source_file_id_api_url,
-                    )
-                    items = model.get_all_items()
-                    is_push = self.__insert_api_push(items, head_item_key)
-                    all_push_results.append(is_push)  # 結果をリストに追加
-                    if is_push:
-                        pbar.write(f"Success: {model}")
-                    else:
-                        pbar.write(f"Error: {model}")
-                except NotXbrlDirectoryException:
-                    pbar.write(f"無効なXBRLファイル: {zip_path}")
-                pbar.update(1)
-                gc.collect()
+        with tqdm(total=len(zip_paths)) as pbar:
+            for zip_path in zip_paths:
+                head_item_key = Utils.string_to_uuid(Path(zip_path).name)
+                if self.is_active_head(head_item_key):
+                    pbar.write(f"Already exists: {zip_path}")
+                    pbar.update(1)
+                    continue
+                else:
+                    try:
+                        model = XBRLModel(
+                            zip_path.as_posix(),
+                            self.output_path,
+                            is_exist_source_file_id_api_url=is_source_file_id_api_url,
+                        )
+                        items = model.get_all_items()
+                        is_push = self.__insert_api_push(items, head_item_key)
+                        all_push_results.append(is_push)  # 結果をリストに追加
+                        if is_push:
+                            pbar.write(f"Success: {model}")
+                        else:
+                            pbar.write(f"Error: {model}")
+                    except NotXbrlDirectoryException:
+                        pbar.write(f"無効なXBRLファイル: {zip_path}")
+                    pbar.update(1)
+                    gc.collect()
 
-    # 全てのis_pushがFalseの場合、例外を発生させる
-    if not any(all_push_results):
-        raise ApiInsertionException("全てのAPI挿入が失敗しました。")
+        # 全てのis_pushがFalseの場合、例外を発生させる
+        if not any(all_push_results):
+            raise ApiInsertionException("全てのAPI挿入が失敗しました。")
 
     def __insert_api_push(
         self, items: List[Dict[str, any]], head_item_key: str
