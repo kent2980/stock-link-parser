@@ -18,26 +18,28 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        output_path = "/home/kent2980/app/stock-link-parser/output"
-        year = 2025
-        month = 4
-        loop = True
-        for _month in range(month, 0, -1):
-            # 指定された月の日付をループで取得
-            for day in range(31, 0, -1):
-                try:
-                    date = datetime.date(year, _month, day)
-                except ValueError:
-                    # 無効な日付（例：11月31日）をスキップ
-                    continue
+        for i in range(2025, 2025):
+            for j in range(1, 12):
+                output_path = "/home/kent2980/app/stock-link-parser/output"
+                year = i
+                month = j
+                loop = True
+                for _month in range(month, 0, -1):
+                    # 指定された月の日付をループで取得
+                    for day in range(31, 0, -1):
+                        try:
+                            date = datetime.date(year, _month, day)
+                        except ValueError:
+                            # 無効な日付（例：11月31日）をスキップ
+                            continue
 
-                date_str = date.strftime("%Y%m%d")
-                target_dir = f"/home/kent2980/doc/tdnet/{date_str}"
-                api_base_url = "http://172.17.0.1"
-                insert = Insert(output_path, api_base_url)
-                insert.insert_xbrl_dir(target_dir)
-            if not loop:
-                break
+                        date_str = date.strftime("%Y%m%d")
+                        target_dir = f"/home/kent2980/doc/tdnet/{date_str}"
+                        api_base_url = "http://172.17.0.1"
+                        insert = Insert(output_path, api_base_url)
+                        insert.insert_xbrl_dir(target_dir)
+                    if not loop:
+                        break
     finally:
         # 処理が終了したらロックファイルを削除
         if os.path.exists(lock_file):
