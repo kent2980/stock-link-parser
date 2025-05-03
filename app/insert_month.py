@@ -34,7 +34,7 @@ if __name__ == "__main__":
                             continue
 
                         date_str = date.strftime("%Y%m%d")
-                        target_dir = f"/home/kent2980/doc/tdnet/{date_str}"
+                        target_dir = f"/home/kent2980/doc/tdnet/{date.strftime("%Y年")}/{date.strftime("%m月")}/{date_str}"
                         api_base_url = "http://172.17.0.1"
                         insert = Insert(output_path, api_base_url)
                         insert.insert_xbrl_dir(target_dir)
