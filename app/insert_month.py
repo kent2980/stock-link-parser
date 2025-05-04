@@ -5,8 +5,6 @@ import sys
 from app.api.ix.exceptions import ApiInsertionException
 from app.api.ix.insert import Insert
 
-
-
 if __name__ == "__main__":
     # ロックファイルのパスを指定
     currentPath = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +14,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 2:
         api_base_url = sys.argv[1]
+        doc_dir = sys.argv[2]
     # ロックファイルが存在するか確認
     if os.path.exists(lock_file):
         print("前回のプロセスがまだ実行中です。終了します。")
@@ -41,7 +40,7 @@ if __name__ == "__main__":
                             continue
 
                         date_str = date.strftime("%Y%m%d")
-                        target_dir = f"/home/kent2980/doc/tdnet/{date.strftime("%Y年")}/{date.strftime("%m月")}/{date_str}"
+                        target_dir = f"{doc_dir}/{date.strftime("%Y年")}/{date.strftime("%m月")}/{date_str}"
                         if os.path.exists(target_dir):
                             try:
                                 insert = Insert(output_path, api_base_url)
