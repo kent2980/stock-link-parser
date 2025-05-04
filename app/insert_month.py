@@ -5,11 +5,17 @@ import sys
 from app.api.ix.exceptions import ApiInsertionException
 from app.api.ix.insert import Insert
 
-# ロックファイルのパスを指定
-lock_file = "/home/kent2980/app/stock-link-parser/script.lock"
-api_base_url = "http://172.17.0.1"
+
 
 if __name__ == "__main__":
+    # ロックファイルのパスを指定
+    currentPath = os.path.dirname(os.path.abspath(__file__))
+    parentDir = os.path.dirname(currentPath)
+    lock_file = f"{parentDir}/script.lock"
+    output_path = f"{parentDir}/output"
+
+    if len(sys.argv) > 2:
+        api_base_url = sys.argv[1]
     # ロックファイルが存在するか確認
     if os.path.exists(lock_file):
         print("前回のプロセスがまだ実行中です。終了します。")
@@ -22,7 +28,6 @@ if __name__ == "__main__":
     try:
         for i in range(2025, 2026):
             for j in range(1, 12):
-                output_path = "/home/kent2980/app/stock-link-parser/output"
                 year = i
                 month = j
                 loop = True
