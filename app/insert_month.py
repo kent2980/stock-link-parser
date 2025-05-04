@@ -2,10 +2,12 @@ import datetime
 import os
 import sys
 
+from app.api.ix.exceptions import ApiInsertionException
 from app.api.ix.insert import Insert
 
 # ロックファイルのパスを指定
 lock_file = "/home/kent2980/app/stock-link-parser/script.lock"
+api_base_url = "http://172.17.0.1"
 
 if __name__ == "__main__":
     # ロックファイルが存在するか確認
@@ -35,9 +37,12 @@ if __name__ == "__main__":
 
                         date_str = date.strftime("%Y%m%d")
                         target_dir = f"/home/kent2980/doc/tdnet/{date.strftime("%Y年")}/{date.strftime("%m月")}/{date_str}"
-                        api_base_url = "http://172.17.0.1"
-                        insert = Insert(output_path, api_base_url)
-                        insert.insert_xbrl_dir(target_dir)
+                        if os.path.exists(target_dir):
+                            try:
+                                insert = Insert(output_path, api_base_url)
+                                insert.insert_xbrl_dir(target_dir)
+                            except ApiInsertionException:
+                                continue
                     if not loop:
                         break
     finally:
