@@ -20,7 +20,7 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        for i in range(2025, 2025):
+        for i in range(2025, 2026):
             for j in range(1, 12):
                 output_path = "/home/kent2980/app/stock-link-parser/output"
                 year = i
