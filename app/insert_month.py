@@ -29,9 +29,15 @@ if __name__ == "__main__":
             for month in range(1, 12):
                 loop = True
                 # 指定された月の日付をループで取得
-                for day in range(1,31):
+                for day in range(1, 31):
+                    # 今日の日付を取得
+                    today = datetime.date.today()
                     try:
                         date = datetime.date(year, month, day)
+                        # 今日の日付よりも後の日付の場合処理を終了
+                        if datetime.date(year, month, day) > today:
+                            loop = False
+                            break
                     except ValueError:
                         # 無効な日付（例：11月31日）をスキップ
                         continue
@@ -45,7 +51,9 @@ if __name__ == "__main__":
                         except ApiInsertionException:
                             continue
                     else:
-                        print(f"指定されたディレクトリが存在しません: {target_dir}")
+                        print(
+                            f"指定されたディレクトリが存在しません: {target_dir}"
+                        )
                         continue
                 if not loop:
                     break
