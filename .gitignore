@@ -19,6 +19,7 @@ output/
 *.pyc
 *.DS_Store
 code_test.py
+script.lock
 # *.xml
 
 # Byte-compiled / optimized / DLL files
