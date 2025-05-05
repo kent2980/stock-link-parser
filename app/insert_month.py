@@ -12,9 +12,10 @@ if __name__ == "__main__":
     lock_file = f"{parentDir}/script.lock"
     output_path = f"{parentDir}/output"
 
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 3:
         api_base_url = sys.argv[1]
         doc_dir = sys.argv[2]
+        startYear = int(sys.argv[3])
     # ロックファイルが存在するか確認
     if os.path.exists(lock_file):
         print("前回のプロセスがまだ実行中です。終了します。")
@@ -24,14 +25,15 @@ if __name__ == "__main__":
     with open(lock_file, "w") as f:
         f.write("")
 
+    # 今日の日付を取得
+    today = datetime.date.today()
+
     try:
-        for year in range(2025, 2026):
+        for year in range(startYear, today.year + 1):
             for month in range(1, 12):
                 loop = True
                 # 指定された月の日付をループで取得
                 for day in range(1, 31):
-                    # 今日の日付を取得
-                    today = datetime.date.today()
                     try:
                         date = datetime.date(year, month, day)
                         # 今日の日付よりも後の日付の場合処理を終了
