@@ -1,4 +1,5 @@
 import json
+import sys
 
 import requests
 
@@ -28,6 +29,12 @@ class Insert:
 
 
 if __name__ == "__main__":
-    api_base_url = "http://172.17.0.1"
+
+    if len(sys.argv) < 2:
+        print("引数が不足しています。以下の形式で指定してください:")
+        print("python latest_insert.py <api_base_url>")
+        sys.exit(1)
+
+    api_base_url = sys.argv[1]
     insert = Insert(api_base_url)
     insert.jpx_stock_info()
