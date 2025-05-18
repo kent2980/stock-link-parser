@@ -246,7 +246,7 @@ class BaseXBRLParser:
             type=type,
             url=url,
             head_item_key=head_item_key,
-            id=self.source_file_id,
+            source_file_id=self.source_file_id,
         )
 
     def to_DataFrame(self):
@@ -277,7 +277,7 @@ class BaseXBRLParser:
 
         if self.__is_exist_source_file_id_api_url:
 
-            key = self.source_file.id
+            key = self.source_file.source_file_id
             if self.source_file.type == "url":
                 response = requests.get(
                     self.__is_exist_source_file_id_api_url,

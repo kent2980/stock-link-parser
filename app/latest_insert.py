@@ -32,11 +32,16 @@ if __name__ == "__main__":
 
     target = sys.argv[1]
     api_base_url = sys.argv[2]
+    end_date = sys.argv[3]
 
     print(f"引数を取得しました:")
     print(f"outputPath: {outputPath}")
     print(f"target: {target}")
     print(f"api_base_url: {api_base_url}")
+    print(f"end_date: {end_date}")
+
+    # 日付を取得
+    end_date = datetime.strptime(sys.argv[3], "%Y-%m-%d")
 
     try:
         # 日付を遡るループ
@@ -53,10 +58,10 @@ if __name__ == "__main__":
                     Path(today.strftime("%Y%m%d")),
                 )
 
-                # targetDirが存在するか確認
-                if not targetDir.exists():
-                    print(f"対象ディレクトリが存在しません: {targetDir}")
-                    print("処理を中断します。")
+                if today < end_date:
+                    print(
+                        "指定された日付よりも前の日付です。処理を終了します。"
+                    )
                     break
 
                 insert.insert_xbrl_dir(targetDir.as_posix())
@@ -64,7 +69,8 @@ if __name__ == "__main__":
             except ApiInsertionException as e:
                 print(f"エラーが発生しました: {e}")
                 print("処理を中断します。")
-                break
+                today -= timedelta(days=1)
+                continue
 
     finally:
         # 処理が終了したらロックファイルを削除

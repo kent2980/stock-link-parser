@@ -33,7 +33,7 @@ class BaseTag(BaseModel):
 class SourceFile(BaseTag):
     """ソースファイル情報を格納するクラス"""
 
-    id: Optional[str] = Field(default=None)
+    source_file_id: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     type: Optional[str] = Field(default=None)
     head_item_key: Optional[str] = Field(default=None)
