@@ -32,20 +32,16 @@ if __name__ == "__main__":
 
     target = sys.argv[1]
     api_base_url = sys.argv[2]
-    end_date = sys.argv[3]
 
     print(f"引数を取得しました:")
     print(f"outputPath: {outputPath}")
     print(f"target: {target}")
     print(f"api_base_url: {api_base_url}")
-    print(f"end_date: {end_date}")
-
-    # 日付を取得
-    end_date = datetime.strptime(sys.argv[3], "%Y-%m-%d")
 
     try:
         # 日付を遡るループ
         today = datetime.now()
+        yesterday = today - timedelta(days=1)
 
         while True:
             try:
@@ -58,7 +54,8 @@ if __name__ == "__main__":
                     Path(today.strftime("%Y%m%d")),
                 )
 
-                if today < end_date:
+                # 昨日までのデータを取得
+                if today < yesterday:
                     print(
                         "指定された日付よりも前の日付です。処理を終了します。"
                     )
@@ -67,8 +64,6 @@ if __name__ == "__main__":
                 insert.insert_xbrl_dir(targetDir.as_posix())
                 today -= timedelta(days=1)
             except ApiInsertionException as e:
-                print(f"エラーが発生しました: {e}")
-                print("処理を中断します。")
                 today -= timedelta(days=1)
                 continue
 
