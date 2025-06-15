@@ -32,6 +32,7 @@ POST_FILE_PATH = "/xbrl/ix/file_path/"
 """ IX_FILE_PATHテーブルにデータを追加するエンドポイント """
 POST_QUALITATIVE = "/xbrl/qualitative/list/"
 """ QUALITATIVEテーブルに複数データを追加するエンドポイント """
+POST_TITLE_SUMMARY = "/ix/summary/ix_title_summary/item/"
 
 # UPDATE エンドポイント
 UPDATE_HEAD_ACTIVE = "/xbrl/ix/head/active/"

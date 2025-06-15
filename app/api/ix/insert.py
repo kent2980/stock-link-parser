@@ -149,7 +149,6 @@ class Insert:
         else:
             print(f"Success: {model}")
 
-
     def insert_xbrl_dir(self, dir_path):
         """
         <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
@@ -181,8 +180,12 @@ class Insert:
                             is_exist_source_file_id_api_url=is_source_file_id_api_url,
                         )
                         items = model.get_all_items()
-                        is_push = self.__insert_api_push(items, head_item_key)
-                        all_push_results.append(is_push)  # 結果をリストに追加
+                        is_push = self.__insert_api_push(
+                            items, head_item_key
+                        )
+                        all_push_results.append(
+                            is_push
+                        )  # 結果をリストに追加
                         if is_push:
                             pbar.write(f"Success: {model}")
                         else:
@@ -260,5 +263,14 @@ class Insert:
 
         response = self.set_head_active(head_item_key)
         response = self.update_head_generate(head_item_key)
+
+        requests.post(
+            self.url + ep.POST_TITLE_SUMMARY,
+            json={"head_item_key": head_item_key},
+        )
+        if response.status_code != 200:
+            print(
+                f"ヘッダーを有効化できませんでした。ステータスコード: {response.status_code}"
+            )
 
         return True
