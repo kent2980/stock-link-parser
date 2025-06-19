@@ -296,6 +296,7 @@ class Insert:
             self.url
             + ep.POST_TITLE_SUMMARY
             + f"?head_item_key={head_item_key}",
+            headers={"Content-Type": "application/json"},
         )
         if response.status_code != 200:
             return False
