@@ -23,7 +23,7 @@ if __name__ == "__main__":
         f.write("")
 
     # コマンドライン引数を取得
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print("引数が不足しています。以下の形式で指定してください:")
         print(
             "python latest_insert.py <outputPath> <today> <targetDir> <api_base_url> <days>"
@@ -32,15 +32,17 @@ if __name__ == "__main__":
 
     target = sys.argv[1]
     api_base_url = sys.argv[2]
+    select_date = sys.argv[3]
 
     print(f"引数を取得しました:")
     print(f"outputPath: {outputPath}")
     print(f"target: {target}")
     print(f"api_base_url: {api_base_url}")
+    print(f"select_date: {select_date}")
 
     try:
         # 日付を遡るループ
-        today = datetime.now()
+        today = datetime.strptime(select_date, "%Y-%m-%d")
         yesterday = today - timedelta(days=1)
 
         while True:

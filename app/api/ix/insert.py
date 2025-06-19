@@ -264,9 +264,10 @@ class Insert:
         response = self.set_head_active(head_item_key)
         response = self.update_head_generate(head_item_key)
 
-        requests.post(
-            self.url + ep.POST_TITLE_SUMMARY,
-            json={"head_item_key": head_item_key},
+        response = requests.post(
+            self.url
+            + ep.POST_TITLE_SUMMARY
+            + f"?head_item_key={head_item_key}",
         )
         if response.status_code != 200:
             print(
