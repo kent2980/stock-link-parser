@@ -139,15 +139,25 @@ class Insert:
         <h3>Attributes:</h3>
             zip_path (str): XBRLファイルのzipファイルのパス
         """
+        # head_item_keyを生成
+        head_item_key = Utils.string_to_uuid(Path(zip_path).name)
+        # XBRLModelのインスタンスを作成
         model = XBRLModel(zip_path, self.output_path)
+        # XBRLファイルから全てのアイテムを取得
         items = model.get_all_items()
+        # APIにデータを挿入
         err_endpoints = self.__insert_api_push(items)
-        if len(err_endpoints) > 0:
+        if len(err_endpoints) == 0:
+            # サマリーの挿入
+            if self.generate_summary(head_item_key):
+                print(f"サマリーを生成しました: {model}")
+            else:
+                print(f"サマリーの生成に失敗しました: {model}")
+            print(f"Success: {model}")
+        else:
             print(model)
             print(f"下記のエンドポイントでエラーが発生しました。")
             pprint.pprint(err_endpoints)
-        else:
-            print(f"Success: {model}")
 
     def insert_xbrl_dir(self, dir_path):
         """
@@ -180,9 +190,18 @@ class Insert:
                             is_exist_source_file_id_api_url=is_source_file_id_api_url,
                         )
                         items = model.get_all_items()
+                        # APIへの挿入処理
                         is_push = self.__insert_api_push(
                             items, head_item_key
                         )
+                        # サマリーの生成
+                        if self.generate_summary(head_item_key):
+                            pbar.write(f"サマリーを生成しました: {model}")
+                        else:
+                            pbar.write(
+                                f"サマリーの生成に失敗しました: {model}"
+                            )
+                        # 挿入結果をリストに追加
                         all_push_results.append(
                             is_push
                         )  # 結果をリストに追加
@@ -264,16 +283,21 @@ class Insert:
         response = self.set_head_active(head_item_key)
         response = self.update_head_generate(head_item_key)
 
+        return True
+
+    def generate_summary(self, head_item_key: str) -> bool:
+        """
+        <p>IX_TITLE_SUMMARYを生成する</p>
+        <h3>Attributes:</h3>
+            head_item_key (str): IX_HEAD_TITLEのキー
+        """
+
         response = requests.post(
             self.url
             + ep.POST_TITLE_SUMMARY
             + f"?head_item_key={head_item_key}",
         )
         if response.status_code != 200:
-            print(
-                f"サマリー生成に失敗しました。ステータスコード: {response.status_code}"
-            )
+            return False
         elif response.status_code == 200:
-            print(f"サマリーを生成しました: {head_item_key}")
-
-        return True
+            return True
