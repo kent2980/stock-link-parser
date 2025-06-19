@@ -271,7 +271,9 @@ class Insert:
         )
         if response.status_code != 200:
             print(
-                f"ヘッダーを有効化できませんでした。ステータスコード: {response.status_code}"
+                f"サマリー生成に失敗しました。ステータスコード: {response.status_code}"
             )
+        elif response.status_code == 200:
+            print(f"サマリーを生成しました: {head_item_key}")
 
         return True
