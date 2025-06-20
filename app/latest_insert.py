@@ -18,10 +18,6 @@ if __name__ == "__main__":
         print("前回のプロセスがまだ実行中です。終了します。")
         sys.exit(0)  # 実行をスキップ
 
-    # ロックファイルを作成
-    with open(lock_file, "w") as f:
-        f.write("")
-
     # コマンドライン引数を取得
     if len(sys.argv) < 3:
         print("引数が不足しています。以下の形式で指定してください:")
@@ -29,6 +25,7 @@ if __name__ == "__main__":
             "python latest_insert.py <targetDir> <api_base_url> [select_date]"
         )
         sys.exit(1)  # 実行をスキップ
+        # finaryの処理を実行
 
     target = sys.argv[1]
     api_base_url = sys.argv[2]
@@ -42,6 +39,10 @@ if __name__ == "__main__":
     print(f"target: {target}")
     print(f"api_base_url: {api_base_url}")
     print(f"select_date: {select_date}")
+
+    # ロックファイルを作成
+    with open(lock_file, "w") as f:
+        f.write("")
 
     try:
         # 日付を遡るループ
