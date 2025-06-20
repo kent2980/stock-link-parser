@@ -23,16 +23,19 @@ if __name__ == "__main__":
         f.write("")
 
     # コマンドライン引数を取得
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 3:
         print("引数が不足しています。以下の形式で指定してください:")
         print(
-            "python latest_insert.py <targetDir> <api_base_url> <days>"
+            "python latest_insert.py <targetDir> <api_base_url> [select_date]"
         )
         sys.exit(1)  # 実行をスキップ
 
     target = sys.argv[1]
     api_base_url = sys.argv[2]
-    select_date = sys.argv[3]
+    if len(sys.argv) >= 4:
+        select_date = sys.argv[3]
+    else:
+        select_date = datetime.now().strftime("%Y-%m-%d")
 
     print(f"引数を取得しました:")
     print(f"outputPath: {outputPath}")
