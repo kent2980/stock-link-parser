@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("引数が不足しています。以下の形式で指定してください:")
         print(
-            "python latest_insert.py <outputPath> <today> <targetDir> <api_base_url> <days>"
+            "python latest_insert.py <targetDir> <api_base_url> <days>"
         )
         sys.exit(1)  # 実行をスキップ
 
