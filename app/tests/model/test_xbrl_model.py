@@ -62,11 +62,8 @@ def test_xbrl_dir(get_xbrl_zip_dir, get_output_dir):
             assert manager is not None
             assert isinstance(manager, BaseXbrlManager)
             for item in manager.items:
-                if item["key"] == "ix_header":
-                    pprint.pprint(item["item"])
-                if item["key"] == "ix_context":
-                    # pprintで要素間に空白を入れる
-                    pprint.pprint(item["item"])
+                if item.key == "href_master":
+                    pprint.pprint(item.item)
 
 
 def test_all_managers(xbrl_model_edjp):

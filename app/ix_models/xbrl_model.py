@@ -14,6 +14,7 @@ from app.ix_manager import (
     QualitativeManager,
     SchemaManager,
 )
+from app.ix_manager.link_manager import LinkHrefMasterManager
 from app.ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
@@ -42,6 +43,7 @@ class XBRLModel(BaseXbrlModel):
         self._pre_link_manager = None
         self._schema_manager = None
         self._qualitative_manager = None
+        self._link_href_master_manager = None
 
         # イベントオブジェクトを作成
         self.ixbrl_manager_initialized = threading.Event()
@@ -52,6 +54,9 @@ class XBRLModel(BaseXbrlModel):
                 executor.submit(self._init_manager, CalLinkManager): "cal_link_manager",
                 executor.submit(self._init_manager, DefLinkManager): "def_link_manager",
                 executor.submit(self._init_manager, PreLinkManager): "pre_link_manager",
+                executor.submit(
+                    self._init_manager, LinkHrefMasterManager
+                ): "link_href_master_manager",
                 executor.submit(
                     SchemaManager,
                     self.directory_path,
@@ -132,6 +137,10 @@ class XBRLModel(BaseXbrlModel):
             self.__all_items = self.get_all_items()
         return self.__all_items
 
+    @property
+    def link_href_master_manager(self):
+        return self._link_href_master_manager
+
     def __del__(self):
         super().__del__()
         self._ixbrl_manager = None
@@ -141,6 +150,7 @@ class XBRLModel(BaseXbrlModel):
         self._pre_link_manager = None
         self._schema_manager = None
         self._qualitative_manager = None
+        self._link_href_master_manager = None
 
     def get_schema(self):
         return self.schema_manager
@@ -163,6 +173,9 @@ class XBRLModel(BaseXbrlModel):
     def get_qualitative(self):
         return self.qualitative_manager
 
+    def get_link_href_master(self):
+        return self.link_href_master_manager
+
     def get_all_manager(self):
         """XBRLファイルに含まれる全てのマネージャを取得します"""
         all_data = {
@@ -173,6 +186,7 @@ class XBRLModel(BaseXbrlModel):
             "cal": self.get_cal_link(),
             "def": self.get_def_link(),
             "pre": self.get_pre_link(),
+            "href": self.get_link_href_master(),
             "qualitative": self.get_qualitative(),
             "schema": self.get_schema(),  # チェック機能のために必ず最後に追加してください。
         }

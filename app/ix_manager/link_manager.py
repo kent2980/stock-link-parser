@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import BaseLinkParser, CalLinkParser, DefLinkParser, PreLinkParser
+from app.ix_parser.base_xbrl_parser import BaseXBRLParser
 from app.ix_tag.link import LinkArc, LinkHrefMaster, LinkLoc, LinkRole
 
 
@@ -10,13 +11,13 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
 
     def __init__(
         self,
-        directory_path,
-        output_path,
-        document_type=None,
+        directory_path: str,
+        output_path: str,
+        document_type: Optional[str] = None,
         head_item_key: Optional[str] = None,
         class_name: Optional[str] = None,
     ):
-        super().__init__(directory_path, head_item_key=head_item_key)
+        super().__init__(directory_path=directory_path, head_item_key=head_item_key)
 
         # プロパティの初期化
         self.__output_path = output_path
@@ -202,15 +203,15 @@ class CalLinkManager(BaseLinkManager):
 
     def __init__(
         self,
-        directory_path,
-        output_path,
-        document_type=None,
+        directory_path: str,
+        output_path: str,
+        document_type: Optional[str] = None,
         head_item_key: Optional[str] = None,
     ):
         super().__init__(
-            directory_path,
-            output_path,
-            document_type,
+            directory_path=directory_path,
+            output_path=output_path,
+            document_type=document_type,
             head_item_key=head_item_key,
             class_name="cal",
         )
@@ -233,15 +234,15 @@ class DefLinkManager(BaseLinkManager):
 
     def __init__(
         self,
-        directory_path,
-        output_path,
-        document_type=None,
+        directory_path: str,
+        output_path: str,
+        document_type: Optional[str] = None,
         head_item_key: Optional[str] = None,
     ):
         super().__init__(
-            directory_path,
-            output_path,
-            document_type,
+            directory_path=directory_path,
+            output_path=output_path,
+            document_type=document_type,
             head_item_key=head_item_key,
             class_name="def",
         )
@@ -264,15 +265,15 @@ class PreLinkManager(BaseLinkManager):
 
     def __init__(
         self,
-        directory_path,
-        output_path,
-        document_type=None,
+        directory_path: str,
+        output_path: str,
+        document_type: Optional[str] = None,
         head_item_key: Optional[str] = None,
     ):
         super().__init__(
-            directory_path,
-            output_path,
-            document_type,
+            directory_path=directory_path,
+            output_path=output_path,
+            document_type=document_type,
             head_item_key=head_item_key,
             class_name="pre",
         )
@@ -284,3 +285,98 @@ class PreLinkManager(BaseLinkManager):
         self._init_parser()
         self._init_manager()
         self._set_source_file_ids()
+
+
+class LinkHrefMasterManager(BaseLinkManager):
+
+    def __init__(
+        self,
+        directory_path: str,
+        output_path: str,
+        document_type: Optional[str] = None,
+        head_item_key: Optional[str] = None,
+    ):
+        super().__init__(
+            directory_path=directory_path,
+            head_item_key=head_item_key,
+            class_name="href_master",
+            output_path=output_path,
+            document_type=document_type,
+        )
+
+        self._output_path = output_path
+        self._document_type = document_type
+        self._items = None
+        self._cal_manager = CalLinkManager(
+            directory_path, output_path, document_type, head_item_key=head_item_key
+        )
+        self._def_manager = DefLinkManager(
+            directory_path, output_path, document_type, head_item_key=head_item_key
+        )
+        self._pre_manager = PreLinkManager(
+            directory_path, output_path, document_type, head_item_key=head_item_key
+        )
+        self.__href_master = None
+        self.__set_href_master()
+
+    @property
+    def output_path(self):
+        return self._output_path
+
+    @property
+    def document_type(self):
+        return self._document_type
+
+    @property
+    def class_name(self):
+        return self._class_name
+
+    @property
+    def cal_manager(self):
+        return self._cal_manager
+
+    @property
+    def def_manager(self):
+        return self._def_manager
+
+    @property
+    def pre_manager(self):
+        return self._pre_manager
+
+    def __set_href_master(self):
+        """href_masterを設定します。"""
+
+        # 既にhref_masterが設定されている場合は何もしない
+        if self.__href_master:
+            return self.__href_master
+
+        cal_href_master = self._cal_manager.href_master or []
+        def_href_master = self.def_manager.href_master or []
+        pre_href_master = self.pre_manager.href_master or []
+
+        # cal_href_master, def_href_master, pre_href_masterを統合
+        href_master = cal_href_master + def_href_master + pre_href_master
+
+        lists: list[LinkHrefMaster] = []
+        for item in href_master:
+            if item.xlink_href not in [x.xlink_href for x in lists]:
+                lists.append(item)
+            else:
+                for existing_item in lists:
+                    if (
+                        existing_item.xlink_href == item.xlink_href
+                        and existing_item.attr_value == item.attr_value
+                    ):
+                        if item.is_calc:
+                            existing_item.is_calc = True
+                        if item.is_def:
+                            existing_item.is_def = True
+                        if item.is_pre:
+                            existing_item.is_pre = True
+                        break
+
+        self._set_items(
+            id="href_master", key="href_master", items=lists, sort_position=0
+        )
+
+        self.__href_master = lists

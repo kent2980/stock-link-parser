@@ -24,7 +24,9 @@ class ItemDict:
 class BaseXbrlManager(Generic[T]):
     """XBRLディレクトリの解析を行う基底クラス"""
 
-    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
+    def __init__(
+        self, directory_path: str, head_item_key: Optional[str] = None
+    ) -> None:
         self.__directory_path = Path(directory_path)
         self.__files = self._to_filelist()
         self.__related_files: Optional[DataFrame] = None
@@ -234,12 +236,12 @@ class BaseXbrlManager(Generic[T]):
 
             items.append(sources)
 
-        self._set_items(
-            id=id,
-            key=f"{class_name}_source_file",
-            items=items,
-            sort_position=1,
-        )
+            self._set_items(
+                id=id,
+                key=f"{class_name}_source_file",
+                items=[sources],
+                sort_position=1,
+            )
 
     def _set_source_file_ids(self):
         """ソースファイルIDのリストを取得する"""
