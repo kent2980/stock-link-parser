@@ -77,6 +77,9 @@ class BaseLinkParser(BaseXBRLParser):
             # httpが含まれている場合は、attr_valueを変更
             if "http" in attr_value:
                 attr_value = attr_value.split("/Role")[-1]
+            # attr_valueの末尾が「TDnet」の場合は、末尾を削除
+            if attr_value.endswith("TDnet"):
+                attr_value = attr_value[:-5]
 
             tags = link_tag.find_all(["link:loc", "loc"])
             for tag in tags:
@@ -117,21 +120,20 @@ class BaseLinkParser(BaseXBRLParser):
             # httpが含まれている場合は、attr_valueを変更
             if "http" in attr_value:
                 attr_value = attr_value.split("/Role")[-1]
+            # attr_valueの末尾が「TDnet」の場合は、末尾を削除
+            if attr_value.endswith("TDnet"):
+                attr_value = attr_value[:-5]
 
             tags = link_tag.find_all(self.arc_tag_name)
             for tag in tags:
                 # _____attr[xlink:order]
                 xlink_order = (
-                    float(tag.get("order"))
-                    if tag.get("order") is not None
-                    else None
+                    float(tag.get("order")) if tag.get("order") is not None else None
                 )
 
                 # _____attr[xlink:weight]
                 xlink_weight = (
-                    float(tag.get("weight"))
-                    if tag.get("weight") is not None
-                    else None
+                    float(tag.get("weight")) if tag.get("weight") is not None else None
                 )
 
                 la = LinkArc(
@@ -214,9 +216,7 @@ class CalLinkParser(BaseLinkParser):
         self._assert_valid_basename("cal.xml")
 
         # 初期化メソッド
-        self._set_link_tag_name(
-            ["link:calculationLink", "calculationLink"]
-        )
+        self._set_link_tag_name(["link:calculationLink", "calculationLink"])
         self._set_arc_tag_name(["link:calculationArc", "calculationArc"])
 
 
@@ -254,7 +254,5 @@ class PreLinkParser(BaseLinkParser):
         self._assert_valid_basename("pre.xml")
 
         # 初期化メソッド
-        self._set_link_tag_name(
-            ["link:presentationLink", "presentationLink"]
-        )
+        self._set_link_tag_name(["link:presentationLink", "presentationLink"])
         self._set_arc_tag_name(["link:presentationArc", "presentationArc"])
