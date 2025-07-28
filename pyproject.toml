@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "pymysql>=1.1.1",
     "pyshorteners>=1.0.1",
+    "pytest>=8.4.1",
     "requests>=2.32.4",
     "tqdm>=4.67.1",
     "wikipedia>=1.4.0",

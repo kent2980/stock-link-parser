@@ -32,11 +32,9 @@ class XBRLModel(BaseXbrlModel):
         is_exist_source_file_id_api_url: Optional[str] = None,
     ) -> None:
         super().__init__(xbrl_zip_path, output_path)
-        self.is_exist_source_file_id_api_url = (
-            is_exist_source_file_id_api_url
-        )
+        self.is_exist_source_file_id_api_url = is_exist_source_file_id_api_url
         self.__all_items = None
-        self._ixbrl_manager = None
+        self._ixbrl_manager: IXBRLManager | None = None
         self._label_manager = None
         self._cal_link_manager = None
         self._def_link_manager = None
@@ -49,18 +47,10 @@ class XBRLModel(BaseXbrlModel):
 
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(
-                    self._init_manager, LabelManager
-                ): "label_manager",
-                executor.submit(
-                    self._init_manager, CalLinkManager
-                ): "cal_link_manager",
-                executor.submit(
-                    self._init_manager, DefLinkManager
-                ): "def_link_manager",
-                executor.submit(
-                    self._init_manager, PreLinkManager
-                ): "pre_link_manager",
+                executor.submit(self._init_manager, LabelManager): "label_manager",
+                executor.submit(self._init_manager, CalLinkManager): "cal_link_manager",
+                executor.submit(self._init_manager, DefLinkManager): "def_link_manager",
+                executor.submit(self._init_manager, PreLinkManager): "pre_link_manager",
                 executor.submit(
                     SchemaManager,
                     self.directory_path,
@@ -80,9 +70,7 @@ class XBRLModel(BaseXbrlModel):
                     result = future.result()
                     setattr(self, f"_{manager_name}", result)
                 except Exception as e:
-                    print(
-                        f"{manager_name}の初期化中にエラーが発生しました: {e}"
-                    )
+                    print(f"{manager_name}の初期化中にエラーが発生しました: {e}")
             # ixbrl_managerの初期化が完了したことを通知
             self.ixbrl_manager_initialized.set()
 
@@ -105,7 +93,7 @@ class XBRLModel(BaseXbrlModel):
                     head_item_key=self.head_item_key,
                 )
         except XbrlListEmptyError as e:
-            # print(e)
+            print(e)
             pass
 
     @property
@@ -113,7 +101,7 @@ class XBRLModel(BaseXbrlModel):
         return self._schema_manager
 
     @property
-    def ixbrl_manager(self):
+    def ixbrl_manager(self) -> IXBRLManager | None:
         return self._ixbrl_manager
 
     @property
@@ -155,7 +143,7 @@ class XBRLModel(BaseXbrlModel):
     def get_schema(self):
         return self.schema_manager
 
-    def get_ixbrl(self):
+    def get_ixbrl(self) -> IXBRLManager | None:
         return self.ixbrl_manager
 
     def get_label(self):
@@ -235,9 +223,7 @@ class XBRLModel(BaseXbrlModel):
         return self.ixbrl_manager.ix_header
 
     def get_file_path(self):
-        return FilePath(
-            head_item_key=self.head_item_key, path=self.xbrl_zip_path
-        )
+        return FilePath(head_item_key=self.head_item_key, path=self.xbrl_zip_path)
 
     def _init_ixbrl_manager(self):
         self.__ixbrl_manager = IXBRLManager(

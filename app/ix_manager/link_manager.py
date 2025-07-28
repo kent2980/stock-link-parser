@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import BaseLinkParser, CalLinkParser, DefLinkParser, PreLinkParser
+from app.ix_tag.link import LinkArc, LinkLoc, LinkRole
 
 
 class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
@@ -44,15 +45,15 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         self.__role = role
 
     @property
-    def link_roles(self):
+    def link_roles(self) -> List[LinkRole] | None:
         return self.__link_roles
 
     @property
-    def link_locs(self):
+    def link_locs(self) -> List[LinkLoc] | None:
         return self.__link_locs
 
     @property
-    def link_arcs(self):
+    def link_arcs(self) -> List[LinkArc] | None:
         return self.__link_arcs
 
     @property
@@ -74,7 +75,7 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
             )
             parsers.append(parser)
 
-        self._set_parsers(parsers)
+        self.parsers = parsers
 
     def _init_manager(self):
         self.set_source_file(self.parsers, class_name=self.class_name)
@@ -162,11 +163,7 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         if self.__href_master:
             return self.__href_master
 
-        hrefs = []
-        for parser in self.parsers:
-            hrefs.extend(parser.hrefs)
-
-        self.__href_master = hrefs
+        link_locs = self.link_locs()
 
 
 class CalLinkManager(BaseLinkManager):

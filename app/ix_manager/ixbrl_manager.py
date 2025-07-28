@@ -55,7 +55,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         return self.__ix_context
 
     @property
-    def ix_header(self):
+    def ix_header(self) -> IxHeader | None:
         return self.__ix_header
 
     def __init_parser(self):
@@ -72,7 +72,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
                 # logger.error(f"DocumentNameタグが見つかりません。[head_item_key]: {self.head_item_key}")
                 pass
 
-        self._set_parsers(parsers)
+        self.parsers = parsers
 
     def __init_manager(self):
         """managerを初期化します。"""

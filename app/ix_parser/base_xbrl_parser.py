@@ -1,6 +1,5 @@
 import fcntl
 import os
-import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -13,9 +12,7 @@ from bs4 import BeautifulSoup as bs
 from pandas import DataFrame
 
 from app.exception import TypeOfXBRLIsDifferent
-from app.exception.xbrl_parser_exception import (
-    AlreadyExistSourceFileIdError,
-)
+from app.exception.xbrl_parser_exception import AlreadyExistSourceFileIdError
 from app.ix_tag import BaseTag, SourceFile
 from app.utils.utils import Utils
 
@@ -43,12 +40,8 @@ class BaseXBRLParser:
         self.__data: Optional[List[BaseTag]] = None  # 解析結果のデータ
         self.__head_item_key = head_item_key  # XBRLファイル固有のID
         self.__source_file_id = None  # XBRLのソースファイルID
-        self.__source_file: Optional[SourceFile] = (
-            None  # XBRLのソースファイル
-        )
-        self.__is_exist_source_file_id_api_url = (
-            is_exist_source_file_id_api_url
-        )
+        self.__source_file: Optional[SourceFile] = None  # XBRLのソースファイル
+        self.__is_exist_source_file_id_api_url = is_exist_source_file_id_api_url
 
         # ソースファイルを設定
         self.__init_head_item_key()
@@ -173,9 +166,7 @@ class BaseXBRLParser:
                 raise Exception("出力先のパスが指定されていません。")
         else:
             if not os.path.exists(url):
-                raise FileNotFoundError(
-                    f"ファイルが見つかりません。[{url}]"
-                )
+                raise FileNotFoundError(f"ファイルが見つかりません。[{url}]")
 
     def __init_parser(self):
         """解析用の初期化処理"""
@@ -203,14 +194,10 @@ class BaseXBRLParser:
             raise Exception("XBRLのIDが指定されていません。")
 
         if self.xbrl_url.startswith("http"):
-            self.__source_file_id = str(
-                Utils.string_to_uuid(self.xbrl_url)
-            )
+            self.__source_file_id = str(Utils.string_to_uuid(self.xbrl_url))
         else:
             self.__source_file_id = str(
-                Utils.string_to_uuid(
-                    f"{self.head_item_key}{self.basename}"
-                )
+                Utils.string_to_uuid(f"{self.head_item_key}{self.basename}")
             )
 
     def __init_xbrl_type(self):
@@ -223,9 +210,7 @@ class BaseXBRLParser:
     def _assert_valid_basename(self, *keywords: str):
         """ファイル名が有効かどうかを検証する"""
         if not self.basename.endswith(keywords):
-            raise TypeOfXBRLIsDifferent(
-                f"{self.basename} は{keywords}ではありません。"
-            )
+            raise TypeOfXBRLIsDifferent(f"{self.basename} は{keywords}ではありません。")
 
     def _set_data(self, data: List[BaseTag]):
         """解析結果のデータを設定する"""

@@ -31,9 +31,7 @@ class Utils:
             Exception: 展開に失敗した場合に発生。
         """
         if not os.path.exists(zip_path):
-            raise FileNotFoundError(
-                f"ZIPファイル {zip_path} が存在しません。"
-            )
+            raise FileNotFoundError(f"ZIPファイル {zip_path} が存在しません。")
 
         if extract_to is None:
             extract_to = os.path.dirname(zip_path)
@@ -42,9 +40,7 @@ class Utils:
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(extract_to)
         except Exception as e:
-            raise Exception(
-                f"ZIPファイル {zip_path} の展開に失敗しました: {e}"
-            )
+            raise Exception(f"ZIPファイル {zip_path} の展開に失敗しました: {e}")
 
     def format_date(date_str):
         """
@@ -78,14 +74,12 @@ class Utils:
         except ValueError:
             try:
                 # "YYYY年MM月DD日"のフォーマット
-                date_obj = datetime.strptime(
-                    date_str, "%Y年%m月%d日"
-                ).strftime("%Y-%m-%d")
+                date_obj = datetime.strptime(date_str, "%Y年%m月%d日").strftime(
+                    "%Y-%m-%d"
+                )
             except ValueError:
                 # "YYYY-MM-DD"のフォーマット
-                date_obj = datetime.strptime(
-                    date_str, "%Y-%m-%d"
-                ).strftime("%Y-%m-%d")
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d").strftime("%Y-%m-%d")
 
         return date_obj
 
@@ -103,12 +97,8 @@ class Utils:
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 try:
-                    if os.path.isfile(file_path) or os.path.islink(
-                        file_path
-                    ):
-                        os.unlink(
-                            file_path
-                        )  # ファイルまたはシンボリックリンクを削除
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)  # ファイルまたはシンボリックリンクを削除
                     elif os.path.isdir(file_path):
                         shutil.rmtree(file_path)  # ディレクトリを削除
                 except Exception as e:
@@ -201,11 +191,7 @@ class Utils:
     def date_str_to_format(text, format_str):
         if "dateyearmonthdaycjk" in format_str:
             # textの「yyyy年mm月dd日」を「yyyy-mm-dd」に変換
-            text = (
-                text.replace("年", "-")
-                .replace("月", "-")
-                .replace("日", "")
-            )
+            text = text.replace("年", "-").replace("月", "-").replace("日", "")
             # textの数字部分を0埋め
             text = re.sub(r"(\d+)", lambda x: x.group(0).zfill(2), text)
             format_str = "dateyearmonthday"
@@ -223,7 +209,7 @@ class Utils:
                 format_str = "dateyearmonthday"
         return text, format_str
 
-    def read_const_json():
+    def read_const_json() -> dict:
         """const.jsonを読み込む関数"""
         # 現在のディレクトリを取得
         current_dir = Path(os.path.dirname(__file__)).parent

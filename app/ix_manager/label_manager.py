@@ -87,7 +87,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
             except AlreadyExistSourceFileIdError:
                 continue
 
-        self._set_parsers(parsers)
+        self.parsers = parsers
 
     def __init_manager(self):
         self.set_source_file(self.parsers, class_name="lab")

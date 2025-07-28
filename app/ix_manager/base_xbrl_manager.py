@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Generic, List, Optional, TypeVar
+from typing import Dict, Generic, List, Optional, TypedDict, TypeVar
 from uuid import uuid4
 
 import pandas as pd
@@ -13,6 +13,13 @@ from app.utils import Utils
 T = TypeVar("T", bound=BaseXBRLParser)
 
 
+class ItemDict(TypedDict):
+    id: str
+    key: str
+    item: Dict[str, str]
+    sort_position: int
+
+
 class BaseXbrlManager(Generic[T]):
     """XBRLディレクトリの解析を行う基底クラス"""
 
@@ -20,10 +27,11 @@ class BaseXbrlManager(Generic[T]):
         self.__directory_path = Path(directory_path)
         self.__files = self._to_filelist()
         self.__related_files: Optional[DataFrame] = None
-        self.__items = []
+        self.__items: List[ItemDict] = []
         self.__head_item_key = head_item_key if head_item_key else str(uuid4())
         self.__parsers = None
         self.__source_file_id_list = None
+        self.__xbrl_type = None
 
     @property
     def files(self):
@@ -38,7 +46,8 @@ class BaseXbrlManager(Generic[T]):
         self.__related_files = related_files
 
     @property
-    def items(self):
+    def items(self) -> List[ItemDict]:
+        """アイテムのリストを取得します。"""
         return self.__items
 
     @property
@@ -58,6 +67,13 @@ class BaseXbrlManager(Generic[T]):
     def parsers(self, parsers: List[T]):
         self.__parsers = parsers
 
+    @property
+    def xbrl_type(self):
+        """XBRLの種類を取得します。"""
+        if self.__xbrl_type is None:
+            self.__xbrl_type = self.xbrl_type()
+        return self.__xbrl_type
+
     def _set_items(self, id: str, key: str, items: any, sort_position: int = 999):
         """アイテムを設定する"""
 
@@ -73,7 +89,7 @@ class BaseXbrlManager(Generic[T]):
         items_dict = json.loads(items_json)
 
         # itemを辞書型に変換する
-        item_dict = {
+        item_dict: ItemDict = {
             "id": id,
             "key": key,
             "item": items_dict,
@@ -114,7 +130,12 @@ class BaseXbrlManager(Generic[T]):
             if file.suffix == ".xsd" and "fr" not in file.name:
                 type_str = file.name.split("-")[1]
                 code = type_str[:4] if len(type_str) == 4 else type_str[2:6]
-                return code, Utils.read_const_json["report"][code]
+                type = Utils.read_const_json()["report"][code]
+                if isinstance(type, str):
+                    return type
+                else:
+                    raise ValueError(f"Invalid type: {type} in file {file_str}")
+        return None
 
     def _set_linkbase_files(self, xlink_role=None):
         """関係ファイルのリストを取得する"""

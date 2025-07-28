@@ -41,7 +41,7 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
                 )
                 parsers.append(parser)
 
-        self._set_parsers(parsers)
+        self.parsers = parsers
 
     def __init_manager(self):
         """QualitativeManagerの初期化"""
