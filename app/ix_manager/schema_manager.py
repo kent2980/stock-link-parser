@@ -5,12 +5,10 @@ from app.ix_manager import BaseXbrlManager
 from app.ix_parser import SchemaParser
 
 
-class SchemaManager(BaseXbrlManager):
+class SchemaManager(BaseXbrlManager[SchemaParser]):
     """XBRLディレクトリの解析を行うクラス"""
 
-    def __init__(
-        self, directory_path, head_item_key: Optional[str] = None
-    ) -> None:
+    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
         super().__init__(directory_path, head_item_key)
 
         self.__files = Path(directory_path).rglob("*.xsd")

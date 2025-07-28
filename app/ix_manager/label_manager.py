@@ -1,14 +1,12 @@
 from typing import List, Optional
 
 from app.exception import SetLanguageNotError
-from app.exception.xbrl_parser_exception import (
-    AlreadyExistSourceFileIdError,
-)
+from app.exception.xbrl_parser_exception import AlreadyExistSourceFileIdError
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import LabelParser
 
 
-class LabelManager(BaseXbrlManager):
+class LabelManager(BaseXbrlManager[LabelParser]):
     """labelLinkbaseデータの解析を行うクラス"""
 
     def __init__(
@@ -25,9 +23,7 @@ class LabelManager(BaseXbrlManager):
         self.__link_labels = None
         self.__link_label_locs = None
         self.__link_label_arcs = None
-        self.__is_exits_source_file_id_api_url = (
-            is_exist_source_file_id_api_url
-        )
+        self.__is_exits_source_file_id_api_url = is_exist_source_file_id_api_url
 
         self._set_linkbase_files("labelLinkbaseRef")
         self.__init_language(lang)
@@ -68,16 +64,12 @@ class LabelManager(BaseXbrlManager):
             if lang == "jp":
                 # self.related_filesのxlink_hrefの末尾が"lab.xml"であるものを抽出
                 self.related_files = self.related_files[
-                    self.related_files["xlink_href"].str.endswith(
-                        "lab.xml"
-                    )
+                    self.related_files["xlink_href"].str.endswith("lab.xml")
                 ]
             elif lang == "en":
                 # self.related_filesのxlink_hrefの末尾が"lab-en.xml"であるものを抽出
                 self.related_files = self.related_files[
-                    self.related_files["xlink_href"].str.endswith(
-                        "lab-en.xml"
-                    )
+                    self.related_files["xlink_href"].str.endswith("lab-en.xml")
                 ]
 
     def __init_parser(self):
@@ -128,9 +120,7 @@ class LabelManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key="lab_link_values", items=data, sort_position=3
-            )
+            self._set_items(id=id, key="lab_link_values", items=data, sort_position=3)
 
         self.__link_labels = rows
 
@@ -157,9 +147,7 @@ class LabelManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key="lab_link_locs", items=data, sort_position=1
-            )
+            self._set_items(id=id, key="lab_link_locs", items=data, sort_position=1)
 
         self.__link_label_locs = rows
 
@@ -186,8 +174,6 @@ class LabelManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key="lab_link_arcs", items=data, sort_position=2
-            )
+            self._set_items(id=id, key="lab_link_arcs", items=data, sort_position=2)
 
         self.__link_label_arcs = rows

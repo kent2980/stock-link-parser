@@ -1,15 +1,10 @@
 from typing import List, Optional
 
 from app.ix_manager import BaseXbrlManager
-from app.ix_parser import (
-    BaseLinkParser,
-    CalLinkParser,
-    DefLinkParser,
-    PreLinkParser,
-)
+from app.ix_parser import BaseLinkParser, CalLinkParser, DefLinkParser, PreLinkParser
 
 
-class BaseLinkManager(BaseXbrlManager):
+class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
     """labelLinkbaseデータの解析を行うクラス"""
 
     def __init__(
@@ -31,6 +26,7 @@ class BaseLinkManager(BaseXbrlManager):
         self.__link_locs = None
         self.__link_arcs = None
         self.__class_name = class_name
+        self.__href_master = None
 
     @property
     def document_type(self):
@@ -39,14 +35,6 @@ class BaseLinkManager(BaseXbrlManager):
     @property
     def output_path(self):
         return self.__output_path
-
-    @property
-    def parser(self):
-        return self.__parser
-
-    @parser.setter
-    def parser(self, parser):
-        self.__parser = parser
 
     @property
     def role(self):
@@ -71,6 +59,10 @@ class BaseLinkManager(BaseXbrlManager):
     @property
     def class_name(self):
         return self.__class_name
+
+    @property
+    def href_master(self):
+        return self.__href_master
 
     def _init_parser(self):
         """パーサーを設定します。"""
@@ -111,9 +103,7 @@ class BaseLinkManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key=f"{self.class_name}_link_roles", items=data
-            )
+            self._set_items(id=id, key=f"{self.class_name}_link_roles", items=data)
 
         self.__link_roles = rows
 
@@ -138,9 +128,7 @@ class BaseLinkManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key=f"{self.class_name}_link_locs", items=data
-            )
+            self._set_items(id=id, key=f"{self.class_name}_link_locs", items=data)
 
         self.__link_locs = rows
 
@@ -164,11 +152,22 @@ class BaseLinkManager(BaseXbrlManager):
 
             rows.append(data)
 
-            self._set_items(
-                id=id, key=f"{self.class_name}_link_arcs", items=data
-            )
+            self._set_items(id=id, key=f"{self.class_name}_link_arcs", items=data)
 
         self.__link_arcs = rows
+
+    def _set_href_master(self):
+        """href_masterを設定します。"""
+
+        # 既にhref_masterが設定されている場合は何もしない
+        if self.__href_master:
+            return self.__href_master
+
+        hrefs = []
+        for parser in self.parsers:
+            hrefs.extend(parser.hrefs)
+
+        self.__href_master = hrefs
 
 
 class CalLinkManager(BaseLinkManager):

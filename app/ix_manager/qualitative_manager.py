@@ -6,15 +6,13 @@ from app.ix_parser import QualitativeParser
 from app.ix_tag import QualitativeDocument
 
 
-class QualitativeManager(BaseXbrlManager):
+class QualitativeManager(BaseXbrlManager[QualitativeParser]):
     """qualitativeデータの解析を行うクラス
 
     raise   - XbrlListEmptyError("qualitative.htmが見つかりません。")
     """
 
-    def __init__(
-        self, directory_path, head_item_key: Optional[str] = None
-    ) -> None:
+    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
         super().__init__(directory_path, head_item_key=head_item_key)
         # self._set_htmlbase_files("qualitative")
 
@@ -59,7 +57,7 @@ class QualitativeManager(BaseXbrlManager):
 
             id = parser.source_file_id
 
-            parser: QualitativeParser = parser.set_qualitative_info()
+            parser = parser.set_qualitative_info()
 
             # parser.set_photo_info()  # 写真情報を設定
 

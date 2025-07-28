@@ -3,23 +3,19 @@ from typing import List, Optional
 
 from app.exception import XbrlListEmptyError
 from app.exception.xbrl_model_exception import NotXbrlDirectoryException
-from app.exception.xbrl_parser_exception import (
-    DocumentNameTagNotFoundError,
-)
+from app.exception.xbrl_parser_exception import DocumentNameTagNotFoundError
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import IxbrlParser
 from app.ix_tag import IxContext, IxHeader, IxNonFraction, IxNonNumeric
 
 
-class IXBRLManager(BaseXbrlManager):
+class IXBRLManager(BaseXbrlManager[IxbrlParser]):
     """iXBRLデータの解析を行うクラス
 
     raise   - XbrlListEmptyError("ixbrlファイルが見つかりません。")
     """
 
-    def __init__(
-        self, directory_path, head_item_key: Optional[str] = None
-    ) -> None:
+    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
         """
         IxbrlManagerクラスのコンストラクタです。
 
@@ -103,7 +99,7 @@ class IXBRLManager(BaseXbrlManager):
 
             id = parser.source_file_id
 
-            parser: IxbrlParser = parser.set_ix_non_fraction()
+            parser = parser.set_ix_non_fraction()
 
             data = parser.data
 
@@ -206,9 +202,7 @@ class IXBRLManager(BaseXbrlManager):
 
         # ix_non_numericからデータを取得
         non_numeric_lists: List[List[IxNonNumeric]] = self.ix_non_numeric
-        non_numeric_list = [
-            item for items in non_numeric_lists for item in items
-        ]
+        non_numeric_list = [item for items in non_numeric_lists for item in items]
 
         # 非数値情報からマッピングとデータ取得処理を行う
         for item in non_numeric_list:
@@ -219,9 +213,7 @@ class IXBRLManager(BaseXbrlManager):
             # endregion
 
             # region 会社情報の取得
-            if re.search(  # 会社名
-                r"CompanyName|AssetManagerREIT", item.name
-            ):
+            if re.search(r"CompanyName|AssetManagerREIT", item.name):  # 会社名
                 company_name = item.value
             elif re.search(r"Securit.*Code$", item.name):  # 証券コード
                 securities_code = item.value
@@ -236,9 +228,7 @@ class IXBRLManager(BaseXbrlManager):
                 current_period = item.value
             elif re.search(r".*URL.*", item.name):  # URL
                 url = item.value
-            elif re.search(
-                r"(?=.*\_FiscalYearEnd.*)", item.name
-            ):  # 決算期
+            elif re.search(r"(?=.*\_FiscalYearEnd.*)", item.name):  # 決算期
                 fiscal_year_end = item.value
             elif re.search(r".*Tel$", item.name):  # 電話番号
                 tel = item.value
@@ -250,9 +240,7 @@ class IXBRLManager(BaseXbrlManager):
             elif re.search(r"TokyoStockExchange$", item.name):  # 上場市場
                 if item.format == "booleantrue" or item.value == "true":
                     listed_market = "東京証券取引所"
-            elif re.search(  # 上場区分
-                r"TokyoStockExchange(?!$)", item.name
-            ):
+            elif re.search(r"TokyoStockExchange(?!$)", item.name):  # 上場区分
                 if item.format == "booleantrue" or item.value == "true":
                     market_section = item.name
             # endregion

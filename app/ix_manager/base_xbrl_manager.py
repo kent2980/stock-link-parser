@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import Generic, List, Optional, TypeVar
 from uuid import uuid4
 
 import pandas as pd
@@ -10,21 +10,19 @@ from app.exception import XbrlDirectoryNotFoundError, XbrlListEmptyError
 from app.ix_parser import BaseXBRLParser, SchemaParser
 from app.utils import Utils
 
+T = TypeVar("T", bound=BaseXBRLParser)
 
-class BaseXbrlManager:
+
+class BaseXbrlManager(Generic[T]):
     """XBRLディレクトリの解析を行う基底クラス"""
 
-    def __init__(
-        self, directory_path, head_item_key: Optional[str] = None
-    ) -> None:
+    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
         self.__directory_path = Path(directory_path)
         self.__files = self._to_filelist()
         self.__related_files: Optional[DataFrame] = None
         self.__items = []
-        self.__head_item_key = (
-            head_item_key if head_item_key else str(uuid4())
-        )
-        self.__parsers: Optional[list[BaseXBRLParser]] = None
+        self.__head_item_key = head_item_key if head_item_key else str(uuid4())
+        self.__parsers = None
         self.__source_file_id_list = None
 
     @property
@@ -52,15 +50,15 @@ class BaseXbrlManager:
         self.__head_item_key = head_item_key
 
     @property
-    def parsers(self):
+    def parsers(self) -> List[T] | None:
+        """パーサーのリストを取得します。"""
         return self.__parsers
 
-    def _set_parsers(self, parsers: List[BaseXBRLParser]):
+    @parsers.setter
+    def parsers(self, parsers: List[T]):
         self.__parsers = parsers
 
-    def _set_items(
-        self, id: str, key: str, items: any, sort_position: int = 999
-    ):
+    def _set_items(self, id: str, key: str, items: any, sort_position: int = 999):
         """アイテムを設定する"""
 
         if not isinstance(items, list):
@@ -93,9 +91,7 @@ class BaseXbrlManager:
     def directory_path(self, directory_path):
         directory_path = Path(directory_path)
         if not directory_path.exists():
-            raise XbrlDirectoryNotFoundError(
-                f"無効なパス[{directory_path} ]"
-            )
+            raise XbrlDirectoryNotFoundError(f"無効なパス[{directory_path} ]")
         self.__directory_path = directory_path
 
     @property
@@ -117,9 +113,7 @@ class BaseXbrlManager:
             file = Path(file_str)
             if file.suffix == ".xsd" and "fr" not in file.name:
                 type_str = file.name.split("-")[1]
-                code = (
-                    type_str[:4] if len(type_str) == 4 else type_str[2:6]
-                )
+                code = type_str[:4] if len(type_str) == 4 else type_str[2:6]
                 return code, Utils.read_const_json["report"][code]
 
     def _set_linkbase_files(self, xlink_role=None):
@@ -128,8 +122,7 @@ class BaseXbrlManager:
         xsd_files = [file for file in files if Path(file).suffix == ".xsd"]
 
         data_frames = [
-            SchemaParser(file).link_base_refs().to_DataFrame()
-            for file in xsd_files
+            SchemaParser(file).link_base_refs().to_DataFrame() for file in xsd_files
         ]
 
         df = pd.concat(data_frames, ignore_index=True)
@@ -138,28 +131,21 @@ class BaseXbrlManager:
             row["xlink_href"]: file
             for file in files
             for index, row in df.iterrows()
-            if not row["xlink_href"].startswith("http")
-            and row["xlink_href"] in file
+            if not row["xlink_href"].startswith("http") and row["xlink_href"] in file
         }
 
         df["xlink_href"] = (
-            df["xlink_href"]
-            .astype(str)
-            .apply(lambda href: href_map.get(href, href))
+            df["xlink_href"].astype(str).apply(lambda href: href_map.get(href, href))
         )
 
         # dfのxlink_roleカラムを整形
         df["xlink_role"] = df["xlink_role"].apply(
-            lambda role: (
-                role.split("/")[-1] if isinstance(role, str) else role
-            )
+            lambda role: (role.split("/")[-1] if isinstance(role, str) else role)
         )
         # dfのxlink_arcroleカラムを整形
         df["xlink_arcrole"] = df["xlink_arcrole"].apply(
             lambda arcrole: (
-                arcrole.split("/")[-1]
-                if isinstance(arcrole, str)
-                else arcrole
+                arcrole.split("/")[-1] if isinstance(arcrole, str) else arcrole
             )
         )
 
@@ -169,9 +155,7 @@ class BaseXbrlManager:
 
         # ファイルが見つからない場合はエラーを発生させる
         if len(df) == 0 and xlink_role:
-            raise XbrlListEmptyError(
-                f"{xlink_role}ファイルが見つかりません。"
-            )
+            raise XbrlListEmptyError(f"{xlink_role}ファイルが見つかりません。")
 
         self.related_files = df
         return self
@@ -184,9 +168,7 @@ class BaseXbrlManager:
             file = Path(file_str)
             if file.suffix == ".htm" or file.suffix == ".html":
                 document_type = (
-                    file.name.split("-")[1][2:4]
-                    if "fr" in file.name
-                    else "sm"
+                    file.name.split("-")[1][2:4] if "fr" in file.name else "sm"
                 )
 
                 href = file.as_posix()
@@ -210,9 +192,7 @@ class BaseXbrlManager:
 
         # ファイルが見つからない場合はエラーを発生させる
         if len(df) == 0 and xlink_role:
-            raise XbrlListEmptyError(
-                f"{xlink_role}ファイルが見つかりません。"
-            )
+            raise XbrlListEmptyError(f"{xlink_role}ファイルが見つかりません。")
 
         self.related_files = df
 
