@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import BaseLinkParser, CalLinkParser, DefLinkParser, PreLinkParser
-from app.ix_tag.link import LinkArc, LinkLoc, LinkRole
+from app.ix_tag.link import LinkArc, LinkHrefMaster, LinkLoc, LinkRole
 
 
 class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
@@ -45,15 +45,15 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         self.__role = role
 
     @property
-    def link_roles(self) -> List[LinkRole] | None:
+    def link_roles(self) -> List[List[LinkRole]] | None:
         return self.__link_roles
 
     @property
-    def link_locs(self) -> List[LinkLoc] | None:
+    def link_locs(self) -> List[List[LinkLoc]] | None:
         return self.__link_locs
 
     @property
-    def link_arcs(self) -> List[LinkArc] | None:
+    def link_arcs(self) -> List[List[LinkArc]] | None:
         return self.__link_arcs
 
     @property
@@ -61,7 +61,7 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         return self.__class_name
 
     @property
-    def href_master(self):
+    def href_master(self) -> List[LinkHrefMaster] | None:
         return self.__href_master
 
     def _init_parser(self):
@@ -82,6 +82,7 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         self.__set_link_roles()
         self.__set_link_locs()
         self.__set_link_arcs()
+        self.__set_href_master()
 
     def __set_link_roles(self):
         """link_rolesを設定します。"""
@@ -156,14 +157,40 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
 
         self.__link_arcs = rows
 
-    def _set_href_master(self):
+    def __set_href_master(self):
         """href_masterを設定します。"""
 
         # 既にhref_masterが設定されている場合は何もしない
         if self.__href_master:
             return self.__href_master
 
-        link_locs = self.link_locs()
+        link_locs = self.link_locs
+
+        rows = []
+        for items in link_locs:
+            for item in items:
+                is_calc = False
+                is_def = False
+                is_pre = False
+                if self.class_name == "cal":
+                    is_calc = True
+                elif self.class_name == "def":
+                    is_def = True
+                elif self.class_name == "pre":
+                    is_pre = True
+                rows.append(
+                    LinkHrefMaster(
+                        head_item_key=self.head_item_key,
+                        xlink_href=item.xlink_href,
+                        attr_value=item.attr_value,
+                        source_file_id=item.source_file_id,
+                        is_calc=is_calc,
+                        is_def=is_def,
+                        is_pre=is_pre,
+                    )
+                )
+
+        self.__href_master = rows
 
 
 class CalLinkManager(BaseLinkManager):

@@ -95,7 +95,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
         self.__set_link_label_locs()
         self.__set_link_label_arcs()
 
-        self.items.sort(key=lambda x: x["sort_position"])
+        self.items.sort(key=lambda x: x.sort_position)
 
     def __set_link_labels(self):
         """

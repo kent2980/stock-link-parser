@@ -8,12 +8,13 @@ from pandas import DataFrame
 
 from app.exception import XbrlDirectoryNotFoundError, XbrlListEmptyError
 from app.ix_parser import BaseXBRLParser, SchemaParser
+from app.ix_tag.base import BaseTag
 from app.utils import Utils
 
 T = TypeVar("T", bound=BaseXBRLParser)
 
 
-class ItemDict(TypedDict):
+class ItemDict:
     id: str
     key: str
     item: Dict[str, str]
@@ -74,27 +75,26 @@ class BaseXbrlManager(Generic[T]):
             self.__xbrl_type = self.xbrl_type()
         return self.__xbrl_type
 
-    def _set_items(self, id: str, key: str, items: any, sort_position: int = 999):
+    def _set_items(self, id: str, key: str, items: list, sort_position: int = 999):
         """アイテムを設定する"""
 
-        if not isinstance(items, list):
-            items = [items]
-
-        items_json = json.dumps(
-            [item.model_dump() for item in items],
-            ensure_ascii=False,
-            default=Utils.decimal_encoder,
-        )
-
-        items_dict = json.loads(items_json)
+        # itemsをList[dict]型に変換する
+        items_dicts = []
+        for item in items:
+            if isinstance(item, dict):
+                continue
+            elif isinstance(item, BaseTag):
+                items_dict = item.__dict__
+                items_dicts.append(items_dict)
+            else:
+                raise TypeError(f"Unsupported item type: {type(item)}")
 
         # itemを辞書型に変換する
-        item_dict: ItemDict = {
-            "id": id,
-            "key": key,
-            "item": items_dict,
-            "sort_position": sort_position,
-        }
+        item_dict = ItemDict()
+        item_dict.id = id
+        item_dict.key = key
+        item_dict.item = items_dicts
+        item_dict.sort_position = sort_position
 
         # itemsにデータを追加する
         self.__items.append(item_dict)
@@ -234,12 +234,12 @@ class BaseXbrlManager(Generic[T]):
 
             items.append(sources)
 
-            self._set_items(
-                id=id,
-                key=f"{class_name}_source_file",
-                items=sources,
-                sort_position=1,
-            )
+        self._set_items(
+            id=id,
+            key=f"{class_name}_source_file",
+            items=items,
+            sort_position=1,
+        )
 
     def _set_source_file_ids(self):
         """ソースファイルIDのリストを取得する"""

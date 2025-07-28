@@ -69,7 +69,7 @@ def test_xbrl_dir(get_xbrl_zip_dir, get_output_dir):
                     pprint.pprint(item["item"])
 
 
-def test_all_managers(get_xbrl_zip_dir, get_output_dir):
-    for model in XBRLModel.xbrl_models(get_xbrl_zip_dir, get_output_dir):
-        for key, _ in model.get_all_manager().items():
-            print(key)
+def test_all_managers(xbrl_model_edjp):
+    model = xbrl_model_edjp
+    item = model.get_all_items()
+    assert isinstance(item, list)

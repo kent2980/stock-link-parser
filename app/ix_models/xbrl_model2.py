@@ -1,5 +1,4 @@
 import threading
-import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional
 
@@ -72,7 +71,6 @@ class XBRLModel(BaseXbrlModel):
                     setattr(self, f"_{manager_name}", result)
                 except Exception as e:
                     print(f"{manager_name}の初期化中にエラーが発生しました: {e}")
-                    traceback.print_exc()  # ここでスタックトレースを出力
             # ixbrl_managerの初期化が完了したことを通知
             self.ixbrl_manager_initialized.set()
 

@@ -188,3 +188,27 @@ class LinkTag(BaseTag):
                     f"{self.xlink_type}_{self.xlink_role}_{self.head_item_key}",
                 )
             )
+
+
+class LinkHrefMaster(BaseTag):
+    """
+    リンクのhrefマスターを表すデータクラスです。
+    """
+
+    head_item_key: Optional[str] = Field(default=None)
+    xlink_href: Optional[str] = Field(default=None)
+    attr_value: Optional[str] = Field(default=None)
+    source_file_id: Optional[str] = Field(default=None)
+    is_calc: Optional[bool] = Field(default=False)
+    is_def: Optional[bool] = Field(default=False)
+    is_pre: Optional[bool] = Field(default=False)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.xlink_href and self.attr_value:
+            self.item_key = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_DNS,
+                    f"{self.xlink_href}_{self.attr_value}_{self.source_file_id}_{self.head_item_key}",
+                )
+            )

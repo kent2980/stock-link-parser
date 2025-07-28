@@ -82,7 +82,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         self.__set_ix_non_numeric()
         self.__set_ix_context()
 
-        self.items.sort(key=lambda x: x["sort_position"])
+        self.items.sort(key=lambda x: x.sort_position)
 
     def __set_ix_non_fraction(self):
         """
@@ -305,6 +305,6 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         self._set_items(
             id=self.head_item_key,
             key="ix_head_title",
-            items=header,
+            items=[header],
             sort_position=0,
         )
