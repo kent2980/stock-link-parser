@@ -20,7 +20,6 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         # プロパティの初期化
         self.__output_path = output_path
         self.__document_type = document_type
-        self.__parser = None
         self.__role = None
         self.__link_roles = None
         self.__link_locs = None
