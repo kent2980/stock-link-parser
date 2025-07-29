@@ -3,7 +3,7 @@ import re
 import time
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import pandas
 import requests
@@ -17,23 +17,23 @@ class QualitativeParser(BaseXBRLParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
         # ファイル名を検証
         self._assert_valid_basename("qualitative.htm")
 
-    def set_qualitative_info(self):
+    def set_qualitative_info(self) -> "QualitativeParser":
 
         # region プロパティの初期化
 
-        type = None
+        type: Optional[str] = None
 
         soup = self.soup
 
-        lists = []
+        lists: List[QualitativeDocument] = []
 
         is_main = False
 
@@ -125,7 +125,7 @@ class QualitativeParser(BaseXBRLParser):
                 index += 1
 
         # orderを設定
-        parentIdLst = []
+        parentIdLst: List[Optional[str]] = []
         for item in lists:
             item: QualitativeDocument = item
             order = parentIdLst.count(item.parentId)
@@ -136,14 +136,14 @@ class QualitativeParser(BaseXBRLParser):
 
         return self
 
-    def set_photo_info(self):
+    def set_photo_info(self) -> None:
         """画像情報を設定する"""
 
         if type(self.data) is not list:
             raise Exception("dataがリスト型ではありません。")
 
-        parentId = None
-        subtitleId = None
+        parentId: Optional[str] = None
+        subtitleId: Optional[str] = None
 
         for item in self.data:
             item: QualitativeDocument = item
@@ -159,9 +159,7 @@ class QualitativeParser(BaseXBRLParser):
                         continue
 
                     API_KEY = "29673097-4f37110575551aebc081c6b86"
-                    query = item.content.replace("事業", "").replace(
-                        "セグメント", ""
-                    )
+                    query = item.content.replace("事業", "").replace("セグメント", "")
                     url = f"https://pixabay.com/api/?key={API_KEY}&q={query}&image_type=photo"
 
                     data = None
@@ -185,7 +183,7 @@ class QualitativeParser(BaseXBRLParser):
                         item.photo_url = url
 
 
-def scraping_text_transform(text):
+def scraping_text_transform(text: str) -> str:
     """スクレイピングしたテキストを整形する関数"""
 
     # textの全角数字と全角かっこを半角数字と半角かっこに変換
@@ -196,12 +194,79 @@ def scraping_text_transform(text):
     )
 
     # textの空白を削除
-    text = re.sub(r" |　| ", "", text)
+    text = re.sub(r" |　| ", "", text)
 
     # textの改行を削除
     text = re.sub(r"\n", "", text)
 
     return text
+
+
+def get_hash_id(head_item_key: str, text: str, source_file_id: str, index: int) -> str:
+    """固有のIDを生成する関数"""
+
+    hash_object = hashlib.md5(
+        f"{head_item_key}{text}{source_file_id}{str(index)}".encode()
+    )
+    return str(uuid.UUID(hash_object.hexdigest()))
+
+
+def classify_text_and_set_ids(
+    text: str,
+    currentId: str,
+    titleId: Optional[str],
+    subTitleId: Optional[str],
+    headingId: Optional[str],
+) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str], str]:
+    """テキストタイプとIDを設定する関数"""
+
+    if re.match(r"^[0-9]\.(?!.*…)", text):
+        type = "title"
+        titleId = currentId
+        subTitleId, headingId, parentId = None, None, None
+    elif re.match(r"^\([0-9]\)", text):
+        type = "sub_title"
+        subTitleId = currentId
+        headingId = None
+        parentId = titleId
+    elif (
+        re.match(
+            r"^\【.*\】$|^\[.*\]$|^\(.*\)$|^[①-⑨].*|^\「.*\」$|^\<.*\>$|^.\..*",
+            text,
+        )
+        and re.match(r"^(?!.*\(注.*\)).*", text)
+        and not re.match(r"^(?=.*です.*)|^(?=.*ます.*)", text)
+    ):
+        type = "heading"
+        headingId = currentId
+        if subTitleId is None:
+            parentId = titleId
+        else:
+            parentId = subTitleId
+    elif re.match(r".*事業$", text):
+        type = "heading"
+        headingId = currentId
+        if subTitleId is None:
+            parentId = titleId
+        else:
+            parentId = subTitleId
+    elif re.match(r".*セグメント$", text):
+        type = "heading"
+        headingId = currentId
+        if subTitleId is None:
+            parentId = titleId
+        else:
+            parentId = subTitleId
+    else:
+        type = "content"
+        if headingId is None:
+            parentId = subTitleId
+            if subTitleId is None:
+                parentId = titleId
+        else:
+            parentId = headingId
+
+    return parentId, titleId, subTitleId, headingId, type
 
 
 def get_hash_id(head_item_key, text, source_file_id, index):
@@ -213,9 +278,7 @@ def get_hash_id(head_item_key, text, source_file_id, index):
     return str(uuid.UUID(hash_object.hexdigest()))
 
 
-def classify_text_and_set_ids(
-    text, currentId, titleId, subTitleId, headingId
-):
+def classify_text_and_set_ids(text, currentId, titleId, subTitleId, headingId):
     """テキストタイプとIDを設定する関数"""
 
     if re.match(r"^[0-9]\.(?!.*…)", text):

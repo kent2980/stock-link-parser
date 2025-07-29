@@ -16,56 +16,56 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         document_type: Optional[str] = None,
         head_item_key: Optional[str] = None,
         class_name: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(directory_path=directory_path, head_item_key=head_item_key)
 
         # プロパティの初期化
-        self.__output_path = output_path
-        self.__document_type = document_type
-        self.__role = None
-        self.__link_roles = None
-        self.__link_locs = None
-        self.__link_arcs = None
-        self.__class_name = class_name
-        self.__href_master = None
+        self.__output_path: str = output_path
+        self.__document_type: Optional[str] = document_type
+        self.__role: Optional[LinkRole] = None
+        self.__link_roles: Optional[List[List]] = None
+        self.__link_locs: Optional[List[List]] = None
+        self.__link_arcs: Optional[List[List]] = None
+        self.__class_name: Optional[str] = class_name
+        self.__href_master: Optional[LinkHrefMaster] = None
 
     @property
-    def document_type(self):
+    def document_type(self) -> Optional[str]:
         return self.__document_type
 
     @property
-    def output_path(self):
+    def output_path(self) -> str:
         return self.__output_path
 
     @property
-    def role(self):
+    def role(self) -> Optional[LinkRole]:
         return self.__role
 
     @role.setter
-    def role(self, role):
+    def role(self, role: LinkRole) -> None:
         self.__role = role
 
     @property
-    def link_roles(self) -> List[List[LinkRole]] | None:
+    def link_roles(self) -> Optional[List[List]]:
         return self.__link_roles
 
     @property
-    def link_locs(self) -> List[List[LinkLoc]] | None:
+    def link_locs(self) -> Optional[List[List]]:
         return self.__link_locs
 
     @property
-    def link_arcs(self) -> List[List[LinkArc]] | None:
+    def link_arcs(self) -> Optional[List[List]]:
         return self.__link_arcs
 
     @property
-    def class_name(self):
+    def class_name(self) -> Optional[str]:
         return self.__class_name
 
     @property
-    def href_master(self) -> List[LinkHrefMaster] | None:
+    def href_master(self) -> Optional[LinkHrefMaster]:
         return self.__href_master
 
-    def _init_parser(self):
+    def _init_parser(self) -> None:
         """パーサーを設定します。"""
         parsers: List[BaseLinkParser] = []
         for _, row in self.related_files.iterrows():

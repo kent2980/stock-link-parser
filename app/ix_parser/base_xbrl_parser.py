@@ -3,12 +3,13 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
 from bs4 import BeautifulSoup as bs
+from bs4 import Tag as BsTag
 from pandas import DataFrame
 
 from app.exception import TypeOfXBRLIsDifferent
@@ -22,26 +23,28 @@ class BaseXBRLParser:
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
         is_exist_source_file_id_api_url: Optional[str] = None,
-    ):
+    ) -> None:
 
         # urlの検証を行います
         self.__assert_valid_url(xbrl_url, output_path)
 
         # プロパティの初期化
-        self.__xbrl_url = xbrl_url  # XBRLのURL
-        self.__output_path = output_path  # 出力先のパス
-        self.__basename = Path(self.xbrl_url).name  # ファイル名
-        self.__xbrl_type = None  # XbrlType(fr or sm)
-        self.__soup = None  # BeautifulSoup
+        self.__xbrl_url: str = xbrl_url  # XBRLのURL
+        self.__output_path: Optional[str] = output_path  # 出力先のパス
+        self.__basename: str = Path(self.xbrl_url).name  # ファイル名
+        self.__xbrl_type: Optional[str] = None  # XbrlType(fr or sm)
+        self.__soup: Optional[BsTag] = None  # BeautifulSoup
         self.__data: Optional[List[BaseTag]] = None  # 解析結果のデータ
-        self.__head_item_key = head_item_key  # XBRLファイル固有のID
-        self.__source_file_id = None  # XBRLのソースファイルID
+        self.__head_item_key: Optional[str] = head_item_key  # XBRLファイル固有のID
+        self.__source_file_id: Optional[str] = None  # XBRLのソースファイルID
         self.__source_file: Optional[SourceFile] = None  # XBRLのソースファイル
-        self.__is_exist_source_file_id_api_url = is_exist_source_file_id_api_url
+        self.__is_exist_source_file_id_api_url: Optional[str] = (
+            is_exist_source_file_id_api_url
+        )
 
         # ソースファイルを設定
         self.__init_head_item_key()
@@ -57,58 +60,54 @@ class BaseXBRLParser:
         self.__init_parser()
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         return self.__basename
 
     @property
-    def data(self):
+    def data(self) -> Optional[List[BaseTag]]:
         return self.__data
 
     @property
-    def xbrl_type(self):
+    def xbrl_type(self) -> Optional[str]:
         return self.__xbrl_type
 
     @property
-    def output_path(self):
+    def output_path(self) -> Optional[str]:
         return self.__output_path
 
     @output_path.setter
-    def output_path(self, output_path: str):
+    def output_path(self, output_path: str) -> None:
         self.__output_path = output_path
 
     @property
-    def source_file(self):
+    def source_file(self) -> Optional[SourceFile]:
         return self.__source_file
 
     @property
-    def source_file_id(self):
+    def source_file_id(self) -> Optional[str]:
         return self.__source_file_id
 
     @property
-    def soup(self):
+    def soup(self) -> Optional[BsTag]:
         return self.__soup
 
     @property
-    def head_item_key(self):
+    def head_item_key(self) -> Optional[str]:
         return self.__head_item_key
 
     @head_item_key.setter
-    def head_item_key(self, head_item_key: str):
-        self.__head_item_key = head_item_key
-
-    @head_item_key.setter
-    def head_item_key(self, head_item_key: str):
+    def head_item_key(self, head_item_key: str) -> None:
         self.__head_item_key = head_item_key
 
     @property
-    def xbrl_url(self):
+    def xbrl_url(self) -> str:
         return self.__xbrl_url
 
     @xbrl_url.setter
-    def xbrl_url(self, xbrl_url: str):
+    def xbrl_url(self, xbrl_url: str) -> None:
         self.__xbrl_url = xbrl_url
 
-    def __fetch_url(self):
+    def __fetch_url(self) -> Optional[str]:
         """URLからローカルにファイルを保存する"""
         if self.xbrl_url.startswith("http"):
             response = requests.get(self.xbrl_url)
@@ -131,8 +130,9 @@ class BaseXBRLParser:
                 return file_path
             else:
                 raise Exception("Failed to fetch XBRL")
+        return None
 
-    def __is_url_in_local(self) -> tuple[bool, str]:
+    def __is_url_in_local(self) -> Tuple[bool, Optional[str]]:
         """URLがローカルに存在するか判定する"""
         if self.xbrl_url.startswith("http"):
             file_path = Path(self.output_path) / Path(
@@ -148,7 +148,7 @@ class BaseXBRLParser:
             else:
                 return False, None
 
-    def __read_xbrl(self, xbrl_path):
+    def __read_xbrl(self, xbrl_path: str) -> BsTag:
         """XBRLをBeautifulSoup読み込む"""
         with open(xbrl_path, "r", encoding="utf-8") as f:
             # 読み取り専用でファイルをロック
@@ -158,7 +158,7 @@ class BaseXBRLParser:
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)
             return self.soup
 
-    def __assert_valid_url(self, url: str, output_path: Optional[str]):
+    def __assert_valid_url(self, url: str, output_path: Optional[str]) -> None:
         """URLが有効かどうかを検証する"""
 
         if url.startswith("http"):
@@ -168,7 +168,7 @@ class BaseXBRLParser:
             if not os.path.exists(url):
                 raise FileNotFoundError(f"ファイルが見つかりません。[{url}]")
 
-    def __init_parser(self):
+    def __init_parser(self) -> None:
         """解析用の初期化処理"""
 
         # ファイルが存在するか確認
@@ -177,14 +177,15 @@ class BaseXBRLParser:
         if is_file is False:
             file_path = self.__fetch_url()
         # XBRLを読み込む
-        self.__read_xbrl(file_path)
+        if file_path:
+            self.__read_xbrl(file_path)
 
-    def __init_head_item_key(self):
+    def __init_head_item_key(self) -> None:
         """XBRLファイル固有のIDを設定する"""
         if self.head_item_key is None:
             self.__head_item_key = str(uuid4())
 
-    def __init_source_file_id(self):
+    def __init_source_file_id(self) -> None:
         """XBRLのソースファイルIDを設定する"""
 
         if self.xbrl_url is None:
@@ -200,23 +201,23 @@ class BaseXBRLParser:
                 Utils.string_to_uuid(f"{self.head_item_key}{self.basename}")
             )
 
-    def __init_xbrl_type(self):
+    def __init_xbrl_type(self) -> None:
         """XBRLの種類を設定する"""
         if "fr" in self.basename:
             self.__xbrl_type = "fr"
         else:
             self.__xbrl_type = "sm"
 
-    def _assert_valid_basename(self, *keywords: str):
+    def _assert_valid_basename(self, *keywords: str) -> None:
         """ファイル名が有効かどうかを検証する"""
         if not self.basename.endswith(keywords):
             raise TypeOfXBRLIsDifferent(f"{self.basename} は{keywords}ではありません。")
 
-    def _set_data(self, data: List[BaseTag]):
+    def _set_data(self, data: List[BaseTag]) -> None:
         """解析結果のデータを設定する"""
         self.__data = data
 
-    def _set_source_file(self, name: str):
+    def _set_source_file(self, name: str) -> None:
         """XBRLのソースファイルを取得する"""
         if self.xbrl_url.startswith("http"):
             type = "url"
@@ -234,7 +235,7 @@ class BaseXBRLParser:
             source_file_id=self.source_file_id,
         )
 
-    def to_DataFrame(self):
+    def to_DataFrame(self) -> DataFrame:
         """DataFrame形式で出力する"""
 
         lists = []
@@ -253,11 +254,11 @@ class BaseXBRLParser:
 
         return DataFrame(lists)
 
-    def to_dict(self):
+    def to_dict(self) -> List[dict]:
         """辞書形式で出力する"""
         return self.to_DataFrame().to_dict(orient="records")
 
-    def __is_exist_requests(self):
+    def __is_exist_requests(self) -> bool:
         """リクエストが存在するか判定する"""
 
         if self.__is_exist_source_file_id_api_url:

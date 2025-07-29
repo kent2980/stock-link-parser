@@ -12,7 +12,9 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
     raise   - XbrlListEmptyError("qualitative.htmが見つかりません。")
     """
 
-    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
+    def __init__(
+        self, directory_path: str, head_item_key: Optional[str] = None
+    ) -> None:
         super().__init__(directory_path, head_item_key=head_item_key)
         # self._set_htmlbase_files("qualitative")
 
@@ -20,7 +22,7 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
         #     raise XbrlListEmptyError("qualitative.htmが見つかりません。")
 
         # プロパティの初期化
-        self.__ix_qualitative_info = None
+        self.__ix_qualitative_info: Optional[List[List[QualitativeDocument]]] = None
 
         # 初期化メソッドを実行
         self.__init_parser()
@@ -28,10 +30,10 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
         self._set_source_file_ids()
 
     @property
-    def ix_qualitative_info(self):
+    def ix_qualitative_info(self) -> Optional[List[List[QualitativeDocument]]]:
         return self.__ix_qualitative_info
 
-    def __init_parser(self):
+    def __init_parser(self) -> None:
         """QualitativeParserの初期化"""
         parsers: List[QualitativeParser] = []
         for file in self.files:
@@ -43,12 +45,12 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
 
         self.parsers = parsers
 
-    def __init_manager(self):
+    def __init_manager(self) -> None:
         """QualitativeManagerの初期化"""
         self.set_source_file(self.parsers, class_name="qualitative")
         self.__set_qualitative_info()
 
-    def __set_qualitative_info(self):
+    def __set_qualitative_info(self) -> None:
         """Qualitative情報を設定する"""
 
         rows: List[List[QualitativeDocument]] = []

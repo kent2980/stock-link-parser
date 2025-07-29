@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from app.ix_tag import LinkArc, LinkBase, LinkLoc, LinkRole, LinkTag
 
@@ -10,38 +10,38 @@ class BaseLinkParser(BaseXBRLParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
 
         # プロパティの初期化
-        self.__link_tag_name = None
-        self.__arc_tag_name = None
+        self.__link_tag_name: Optional[List[str]] = None
+        self.__arc_tag_name: Optional[List[str]] = None
 
     @property
-    def link_tag_name(self):
+    def link_tag_name(self) -> Optional[List[str]]:
         return self.__link_tag_name
 
     @property
-    def arc_tag_name(self):
+    def arc_tag_name(self) -> Optional[List[str]]:
         return self.__arc_tag_name
 
-    def _set_link_tag_name(self, tag_name):
+    def _set_link_tag_name(self, tag_name: List[str]) -> None:
         self.__link_tag_name = tag_name
 
-    def _set_arc_tag_name(self, tag_name):
+    def _set_arc_tag_name(self, tag_name: List[str]) -> None:
         self.__arc_tag_name = tag_name
 
-    def link_roles(self):
+    def link_roles(self) -> "BaseLinkParser":
         """link:role要素を取得するメソッド。
 
         returns:
-            DataFrame: link:role要素を含むDataFrame。
+            BaseLinkParser: 自身のインスタンス
         """
 
-        lists = []
+        lists: List[LinkRole] = []
 
         tags = self.soup.find_all(name=["link:role", "roleRef"])
         for tag in tags:
@@ -60,15 +60,15 @@ class BaseLinkParser(BaseXBRLParser):
 
         return self
 
-    def link_locs(self):
+    def link_locs(self) -> "BaseLinkParser":
         """link:loc要素を取得するメソッド。
 
         returns:
-            DataFrame: link:loc要素を含むDataFrame。
+            BaseLinkParser: 自身のインスタンス
         """
         link_tags = self.soup.find_all(self.link_tag_name)
 
-        lists = []
+        lists: List[LinkLoc] = []
 
         for link_tag in link_tags:
 
@@ -104,15 +104,15 @@ class BaseLinkParser(BaseXBRLParser):
 
         return self
 
-    def link_arcs(self):
+    def link_arcs(self) -> "BaseLinkParser":
         """link:arc要素を取得するメソッド。
 
         returns:
-            DataFrame: link:arc要素を含むDataFrame。
+            BaseLinkParser: 自身のインスタンス
         """
         link_tags = self.soup.find_all(self.link_tag_name)
 
-        lists = []
+        lists: List[LinkArc] = []
         for link_tag in link_tags:
 
             attr_value = link_tag.get("xlink:role").split("_")[-1]
@@ -153,14 +153,14 @@ class BaseLinkParser(BaseXBRLParser):
 
         return self
 
-    def link_base(self):
+    def link_base(self) -> "BaseLinkParser":
         """link:base要素を取得するメソッド。
 
         returns:
-            DataFrame: link:base要素を含むDataFrame。
+            BaseLinkParser: 自身のインスタンス
         """
 
-        lists = []
+        lists: List[LinkBase] = []
 
         tags = self.soup.find_all(name=["link:linkbase", "linkbase"])
         for tag in tags:
@@ -177,14 +177,14 @@ class BaseLinkParser(BaseXBRLParser):
 
         return self
 
-    def link_tags(self):
+    def link_tags(self) -> "BaseLinkParser":
         """link要素を取得するメソッド。
 
         returns:
-            DataFrame: link要素を含むDataFrame。
+            BaseLinkParser: 自身のインスタンス
         """
 
-        lists = []
+        lists: List[LinkTag] = []
 
         tags = self.soup.find_all(self.link_tag_name)
         for tag in tags:
@@ -206,10 +206,10 @@ class CalLinkParser(BaseLinkParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証
@@ -225,10 +225,10 @@ class DefLinkParser(BaseLinkParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証
@@ -244,10 +244,10 @@ class PreLinkParser(BaseLinkParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名の検証

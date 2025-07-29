@@ -8,7 +8,9 @@ from app.ix_parser import SchemaParser
 class SchemaManager(BaseXbrlManager[SchemaParser]):
     """XBRLディレクトリの解析を行うクラス"""
 
-    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
+    def __init__(
+        self, directory_path: str, head_item_key: Optional[str] = None
+    ) -> None:
         super().__init__(directory_path, head_item_key)
 
         self.__files = Path(directory_path).rglob("*.xsd")
@@ -20,46 +22,46 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
 
         # プロパティの初期化
         self.__parsers: Optional[List[SchemaParser]] = None
-        self.__elements = None
-        self.__import_schemas = None
-        self.__link_base_refs = None
+        self.__elements: Optional[List[List]] = None
+        self.__import_schemas: Optional[List[List]] = None
+        self.__link_base_refs: Optional[List[List]] = None
 
         # 初期化メソッドを実行
         self.__init_parser()
         self.__init_manager()
 
     @property
-    def parsers(self):
+    def parsers(self) -> Optional[List[SchemaParser]]:
         return self.__parsers
 
     @property
-    def elements(self):
+    def elements(self) -> Optional[List[List]]:
         return self.__elements
 
     @property
-    def import_schemas(self):
+    def import_schemas(self) -> Optional[List[List]]:
         return self.__import_schemas
 
     @property
-    def link_base_refs(self):
+    def link_base_refs(self) -> Optional[List[List]]:
         return self.__link_base_refs
 
-    def __init_parser(self):
+    def __init_parser(self) -> None:
         """パーサーの初期化を行う"""
         self.__parsers = [
             SchemaParser(file.as_posix(), head_item_key=self.head_item_key)
             for file in self.__files
         ]
 
-    def __init_manager(self):
+    def __init_manager(self) -> None:
         """マネージャーの初期化を行う"""
         self.set_source_file(self.parsers, class_name="sc")
         self._set_elements()
         self._set_import_schemas()
         self._set_link_base_refs(["lab-en", "gla"])
 
-    def _set_elements(self):
-        rows = []
+    def _set_elements(self) -> None:
+        rows: List[List] = []
 
         for parser in self.parsers:
 
@@ -75,8 +77,8 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
 
         self.__elements = rows
 
-    def _set_import_schemas(self):
-        rows = []
+    def _set_import_schemas(self) -> None:
+        rows: List[List] = []
 
         for parser in self.parsers:
 
@@ -92,8 +94,8 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
 
         self.__import_schemas = rows
 
-    def _set_link_base_refs(self, exclude: list = []):
-        rows = []
+    def _set_link_base_refs(self, exclude: List[str] = []) -> None:
+        rows: List[List] = []
 
         for parser in self.parsers:
 

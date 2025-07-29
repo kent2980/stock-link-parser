@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from app.ix_tag import SchemaElement, SchemaImport, SchemaLinkBaseRef
 from app.utils import Utils
@@ -12,17 +12,17 @@ class SchemaParser(BaseXBRLParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(xbrl_url, output_path, head_item_key)
 
         # ファイル名を検証
         self._assert_valid_basename(".xsd")
 
-    def import_schemas(self):
-        lists = []
+    def import_schemas(self) -> "SchemaParser":
+        lists: List[SchemaImport] = []
 
         tags = self.soup.find_all(name="import")
         for tag in tags:
@@ -41,8 +41,8 @@ class SchemaParser(BaseXBRLParser):
 
         return self
 
-    def link_base_refs(self, exclude: list = []):
-        lists = []
+    def link_base_refs(self, exclude: List[str] = []) -> "SchemaParser":
+        lists: List[SchemaLinkBaseRef] = []
 
         # 除外リスト
 
@@ -81,8 +81,8 @@ class SchemaParser(BaseXBRLParser):
 
         return self
 
-    def elements(self):
-        lists = []
+    def elements(self) -> "SchemaParser":
+        lists: List[SchemaElement] = []
 
         tags = self.soup.find_all(name="element")
         for tag in tags:

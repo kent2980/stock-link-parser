@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from app.exception import XbrlListEmptyError
 from app.exception.xbrl_model_exception import NotXbrlDirectoryException
@@ -15,7 +15,9 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
     raise   - XbrlListEmptyError("ixbrlファイルが見つかりません。")
     """
 
-    def __init__(self, directory_path, head_item_key: Optional[str] = None) -> None:
+    def __init__(
+        self, directory_path: str, head_item_key: Optional[str] = None
+    ) -> None:
         """
         IxbrlManagerクラスのコンストラクタです。
 
@@ -32,10 +34,10 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
             raise XbrlListEmptyError("ixbrlファイルが見つかりません。")
 
         # プロパティの初期化
-        self.__ix_non_fraction = None
-        self.__ix_non_numeric = None
-        self.__ix_context = None
-        self.__ix_header = None
+        self.__ix_non_fraction: Optional[IxNonFraction] = None
+        self.__ix_non_numeric: Optional[IxNonNumeric] = None
+        self.__ix_context: Optional[IxContext] = None
+        self.__ix_header: Optional[IxHeader] = None
 
         # 初期化メソッドを実行
         self.__init_parser()
@@ -43,22 +45,22 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         self._set_source_file_ids()
 
     @property
-    def ix_non_fraction(self):
+    def ix_non_fraction(self) -> Optional[IxNonFraction]:
         return self.__ix_non_fraction
 
     @property
-    def ix_non_numeric(self):
+    def ix_non_numeric(self) -> Optional[IxNonNumeric]:
         return self.__ix_non_numeric
 
     @property
-    def ix_context(self):
+    def ix_context(self) -> Optional[IxContext]:
         return self.__ix_context
 
     @property
-    def ix_header(self) -> IxHeader | None:
+    def ix_header(self) -> Optional[IxHeader]:
         return self.__ix_header
 
-    def __init_parser(self):
+    def __init_parser(self) -> None:
         """parserを初期化します。"""
         parsers: List[IxbrlParser] = []
         for _, row in self.related_files.iterrows():
@@ -74,7 +76,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
 
         self.parsers = parsers
 
-    def __init_manager(self):
+    def __init_manager(self) -> None:
         """managerを初期化します。"""
         self.__set_ix_header()
         self.set_source_file(self.parsers, class_name="ix")
@@ -84,7 +86,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
 
         self.items.sort(key=lambda x: x.sort_position)
 
-    def __set_ix_non_fraction(self):
+    def __set_ix_non_fraction(self) -> None:
         """
         ix_non_fraction属性を設定します。
         非分数のIXBRLデータを取得します。
@@ -109,7 +111,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
 
         self.__ix_non_fraction = rows
 
-    def __set_ix_non_numeric(self):
+    def __set_ix_non_numeric(self) -> None:
         """
         ix_non_numeric属性を設定します。
         非数値のIXBRLデータを取得します。

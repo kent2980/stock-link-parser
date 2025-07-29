@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from app.exception import TagNotFoundError
 from app.ix_tag import LabelArc, LabelLoc, LabelRoleRefs, LabelValue
@@ -11,11 +11,11 @@ class LabelParser(BaseXBRLParser):
 
     def __init__(
         self,
-        xbrl_url,
-        output_path=None,
+        xbrl_url: str,
+        output_path: Optional[str] = None,
         head_item_key: Optional[str] = None,
         is_exist_source_file_id_api_url: Optional[str] = None,
-    ):
+    ) -> None:
 
         super().__init__(
             xbrl_url,
@@ -30,14 +30,14 @@ class LabelParser(BaseXBRLParser):
         # 初期化メソッド
         self._set_source_file(self.basename)
 
-    def link_labels(self):
+    def link_labels(self) -> "LabelParser":
         """link:label要素を取得するメソッド。
 
         returns:
-            self: LabelParser
+            LabelParser: 自身のインスタンス
         """
 
-        lists = []
+        lists: List[LabelValue] = []
 
         tags = self.soup.find_all(name=["link:label", "label"])
         for tag in tags:
@@ -58,22 +58,20 @@ class LabelParser(BaseXBRLParser):
 
         return self
 
-    def link_label_locs(self):
+    def link_label_locs(self) -> "LabelParser":
         """link:loc要素を取得するメソッド。
 
         returns:
-            self: LabelParser
+            LabelParser: 自身のインスタンス
         """
-        lists = []
+        lists: List[LabelLoc] = []
 
         tags = self.soup.find_all(name=["link:loc", "loc"])
         for tag in tags:
 
             # _____attr[xlink:href]
             if tag.get("xlink:href"):
-                xlink_schema = (
-                    tag.get("xlink:href").split("#")[0].split("/")[-1]
-                )
+                xlink_schema = tag.get("xlink:href").split("#")[0].split("/")[-1]
                 xlink_href = tag.get("xlink:href").split("#")[-1:][0]
 
                 # ファイル名にtseが含まれている場合
@@ -100,13 +98,13 @@ class LabelParser(BaseXBRLParser):
 
         return self
 
-    def link_label_arcs(self):
+    def link_label_arcs(self) -> "LabelParser":
         """link:labelArc要素を取得するメソッド。
 
         returns:
-            self: LabelParser
+            LabelParser: 自身のインスタンス
         """
-        lists = []
+        lists: List[LabelArc] = []
         tags = self.soup.find_all(name=["link:labelArc", "labelArc"])
         for tag in tags:
 
@@ -123,16 +121,16 @@ class LabelParser(BaseXBRLParser):
 
         return self
 
-    def role_refs(self):
+    def role_refs(self) -> "LabelParser":
         """roleRef要素を取得するメソッド。
 
         returns:
-            self: LabelParser
+            LabelParser: 自身のインスタンス
 
         Raises:
             TagNotFoundError: roleRef要素が存在しない場合に発生します。
         """
-        lists = []
+        lists: List[LabelRoleRefs] = []
         tags = self.soup.find_all(name=["link:roleRef", "roleRef"])
 
         if len(tags) == 0:
@@ -140,13 +138,12 @@ class LabelParser(BaseXBRLParser):
 
         for tag in tags:
             # _____attr[xlink:href]
+            xlink_schema: Optional[str] = None
+            xlink_href: Optional[str] = None
+
             if tag.get("xlink:href"):
                 xlink_schema = tag.get("xlink:href").split("#")[0]
                 xlink_href = tag.get("xlink:href").split("#")[-1:][0]
-
-            else:
-                xlink_schema = None
-                xlink_href = None
 
             lrr = LabelRoleRefs(
                 role_uri=tag.get("roleURI"),

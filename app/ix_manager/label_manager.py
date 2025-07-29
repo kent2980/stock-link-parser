@@ -11,18 +11,18 @@ class LabelManager(BaseXbrlManager[LabelParser]):
 
     def __init__(
         self,
-        directory_path,
-        output_path,
-        lang="jp",
+        directory_path: str,
+        output_path: str,
+        lang: str = "jp",
         head_item_key: Optional[str] = None,
         is_exist_source_file_id_api_url: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(directory_path, head_item_key=head_item_key)
         self.__output_path = output_path
-        self.__lang = None
-        self.__link_labels = None
-        self.__link_label_locs = None
-        self.__link_label_arcs = None
+        self.__lang: Optional[str] = None
+        self.__link_labels: Optional[List[List]] = None
+        self.__link_label_locs: Optional[List[List]] = None
+        self.__link_label_arcs: Optional[List[List]] = None
         self.__is_exits_source_file_id_api_url = is_exist_source_file_id_api_url
 
         self._set_linkbase_files("labelLinkbaseRef")
@@ -32,26 +32,26 @@ class LabelManager(BaseXbrlManager[LabelParser]):
         self._set_source_file_ids()
 
     @property
-    def output_path(self):
+    def output_path(self) -> str:
         return self.__output_path
 
     @property
-    def lang(self):
+    def lang(self) -> Optional[str]:
         return self.__lang
 
     @property
-    def link_labels(self):
+    def link_labels(self) -> Optional[List[List]]:
         return self.__link_labels
 
     @property
-    def link_label_locs(self):
+    def link_label_locs(self) -> Optional[List[List]]:
         return self.__link_label_locs
 
     @property
-    def link_label_arcs(self):
+    def link_label_arcs(self) -> Optional[List[List]]:
         return self.__link_label_arcs
 
-    def __init_language(self, lang):
+    def __init_language(self, lang: str) -> None:
         """言語を設定します。"""
         self.__lang = lang
 
@@ -72,7 +72,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
                     self.related_files["xlink_href"].str.endswith("lab-en.xml")
                 ]
 
-    def __init_parser(self):
+    def __init_parser(self) -> None:
         """パーサーを設定します。"""
         parsers: List[LabelParser] = []
         for _, row in self.related_files.iterrows():
@@ -89,7 +89,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
 
         self.parsers = parsers
 
-    def __init_manager(self):
+    def __init_manager(self) -> None:
         self.set_source_file(self.parsers, class_name="lab")
         self.__set_link_labels()
         self.__set_link_label_locs()
@@ -97,7 +97,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
 
         self.items.sort(key=lambda x: x.sort_position)
 
-    def __set_link_labels(self):
+    def __set_link_labels(self) -> None:
         """
         label属性を設定します。
         ラベル情報を取得します。
@@ -124,7 +124,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
 
         self.__link_labels = rows
 
-    def __set_link_label_locs(self):
+    def __set_link_label_locs(self) -> None:
         """
         loc属性を設定します。
         loc情報を取得します。
@@ -151,7 +151,7 @@ class LabelManager(BaseXbrlManager[LabelParser]):
 
         self.__link_label_locs = rows
 
-    def __set_link_label_arcs(self):
+    def __set_link_label_arcs(self) -> None:
         """
         labelArc属性を設定します。
         labelArc情報を取得します。
