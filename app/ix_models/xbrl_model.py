@@ -1,8 +1,19 @@
 import threading
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field, make_dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Protocol,
+    Type,
+    TypedDict,
+    Union,
+    runtime_checkable,
+)
 
 from app.exception import XbrlListEmptyError
 from app.ix_manager import (
@@ -15,6 +26,7 @@ from app.ix_manager import (
     QualitativeManager,
     SchemaManager,
 )
+from app.ix_manager.base_xbrl_manager import ItemDict
 from app.ix_manager.link_manager import LinkHrefMasterManager
 from app.ix_tag import FilePath
 
@@ -26,6 +38,52 @@ class XBRLItem(TypedDict):
 
     key: str
     item: Dict[str, Union[str, int, float, bool, None]]
+
+
+@runtime_checkable
+class XBRLDataProtocol(Protocol):
+    """XBRLデータクラスのプロトコル定義
+    IDEの型ヒント支援のために使用
+    """
+
+    # すべてのプロパティを明示的に定義（実際のデータに基づく）
+    cal_link_arcs: List[Dict[str, Any]]  # cal_link_arcs
+    cal_link_locs: List[Dict[str, Any]]  # cal_link_locs
+    cal_link_roles: List[Dict[str, Any]]  # cal_link_roles
+    cal_source_file: List[Dict[str, Any]]  # cal_source_file
+    def_link_arcs: List[Dict[str, Any]]  # def_link_arcs
+    def_link_locs: List[Dict[str, Any]]  # def_link_locs
+    def_link_roles: List[Dict[str, Any]]  # def_link_roles
+    def_source_file: List[Dict[str, Any]]  # def_source_file
+    href_master: List[Dict[str, Any]]  # href_master
+    ix_context: List[Dict[str, Any]]  # ix_context
+    ix_file_path: List[Dict[str, Any]]  # ix_file_path
+    ix_head_title: List[Dict[str, Any]]  # ix_head_title
+    ix_non_fraction: List[Dict[str, Any]]  # ix_non_fraction
+    ix_non_numeric: List[Dict[str, Any]]  # ix_non_numeric
+    ix_source_file: List[Dict[str, Any]]  # ix_source_file
+    lab_link_arcs: List[Dict[str, Any]]  # lab_link_arcs
+    lab_link_locs: List[Dict[str, Any]]  # lab_link_locs
+    lab_link_values: List[Dict[str, Any]]  # lab_link_values
+    lab_source_file: List[Dict[str, Any]]  # lab_source_file
+    pre_link_arcs: List[Dict[str, Any]]  # pre_link_arcs
+    pre_link_locs: List[Dict[str, Any]]  # pre_link_locs
+    pre_link_roles: List[Dict[str, Any]]  # pre_link_roles
+    pre_source_file: List[Dict[str, Any]]  # pre_source_file
+    qualitative_info: List[Dict[str, Any]]  # qualitative_info
+    qualitative_source_file: List[Dict[str, Any]]  # qualitative_source_file
+    sc_elements: List[Dict[str, Any]]  # sc_elements
+    sc_import: List[Dict[str, Any]]  # sc_import
+    sc_linkbase_ref: List[Dict[str, Any]]  # sc_linkbase_ref
+    sc_source_file: List[Dict[str, Any]]  # sc_source_file
+
+    # メタデータ属性
+    __property_hints__: Dict[str, type]
+    __available_properties__: List[str]
+
+    def __getattr__(self, name: str) -> Any:
+        """動的プロパティアクセス用"""
+        ...
 
 
 class XBRLModel(BaseXbrlModel):
@@ -45,7 +103,7 @@ class XBRLModel(BaseXbrlModel):
         self.is_exist_source_file_id_api_url: Optional[str] = (
             is_exist_source_file_id_api_url
         )
-        self.__all_items: Optional[List[XBRLItem]] = None
+        self.__all_items: Optional[List[ItemDict]] = None
         self._ixbrl_manager: Optional[IXBRLManager] = None
         self._label_manager: Optional[LabelManager] = None
         self._cal_link_manager: Optional[CalLinkManager] = None
@@ -144,7 +202,7 @@ class XBRLModel(BaseXbrlModel):
         return self._qualitative_manager
 
     @property
-    def all_items(self) -> List[XBRLItem]:
+    def all_items(self) -> List[ItemDict]:
         if self.__all_items is None:
             self.__all_items = self.get_all_items()
         return self.__all_items
@@ -212,30 +270,91 @@ class XBRLModel(BaseXbrlModel):
             for value in self.ixbrl_manager.ixbrl_roles():
                 yield value
 
-    def get_all_items(self) -> List[XBRLItem]:
+    def get_all_items(self) -> List[ItemDict]:
         """<p>XBRLファイルに含まれる全てのデータを取得します。</p>
         <p>取得した辞書のキーはget_all_items_keys()で取得できます</p>
+        <p>同じkeyを持つItemDictのitemは集約されます</p>
         """
         # ixbrl_managerの初期化が完了するまで待機
         # self.ixbrl_manager_initialized.wait()
         # マネージャークラスの
-        lists: List[XBRLItem] = []
+        lists: List[ItemDict] = []
 
-        file_path: XBRLItem = {  # ファイルパスを追加
-            "key": "ix_file_path",
-            "item": self.get_file_path().model_dump(),
-        }
+        # ファイルパス情報をItemDict形式で追加
+        file_path_item = ItemDict()
+        file_path_item.id = "file_path"
+        file_path_item.key = "ix_file_path"
+        file_path_item.item = [self.get_file_path().model_dump()]
+        file_path_item.sort_position = 0
 
-        lists.append(file_path)
+        lists.append(file_path_item)
 
         for _, manager in self.get_all_manager().items():
             for item in manager.items:
-                # listsとitemsを結合
+                # manager.itemsはすでにItemDictのリスト
                 lists.append(item)
 
-        self.__all_items = lists
+        # 同じkeyを持つItemDictのitemを集約
+        aggregated_items = self._aggregate_items_by_key(lists)
 
-        return lists
+        self.__all_items = aggregated_items
+
+        return aggregated_items
+
+    def _aggregate_items_by_key(self, items: List[ItemDict]) -> List[ItemDict]:
+        """同じkeyを持つItemDictのitemを集約する
+
+        Args:
+            items: 集約対象のItemDictのリスト
+
+        Returns:
+            集約されたItemDictのリスト
+        """
+        aggregated_dict: Dict[str, ItemDict] = {}
+
+        for item in items:
+            key = item.key
+
+            if key not in aggregated_dict:
+                # 新しいキーの場合、そのまま追加
+                aggregated_dict[key] = ItemDict()
+                aggregated_dict[key].id = item.id
+                aggregated_dict[key].key = item.key
+                aggregated_dict[key].sort_position = item.sort_position
+                aggregated_dict[key].item = (
+                    item.item.copy() if isinstance(item.item, list) else [item.item]
+                )
+            else:
+                # 既存のキーの場合、itemを集約
+                existing_item = aggregated_dict[key]
+
+                # itemが辞書の場合はリストに変換してから追加
+                if isinstance(item.item, dict):
+                    if isinstance(existing_item.item, list):
+                        existing_item.item.append(item.item)
+                    else:
+                        existing_item.item = [existing_item.item, item.item]
+                elif isinstance(item.item, list):
+                    if isinstance(existing_item.item, list):
+                        existing_item.item.extend(item.item)
+                    else:
+                        existing_item.item = [existing_item.item] + item.item
+                else:
+                    # その他の型の場合
+                    if isinstance(existing_item.item, list):
+                        existing_item.item.append(item.item)
+                    else:
+                        existing_item.item = [existing_item.item, item.item]
+
+                # sort_positionは最小値を取る
+                if item.sort_position < existing_item.sort_position:
+                    existing_item.sort_position = item.sort_position
+
+        # sort_positionでソートして返す
+        result = list(aggregated_dict.values())
+        result.sort(key=lambda x: x.sort_position)
+
+        return result
 
     def get_all_items_keys(self) -> List[str]:
         """XBRLファイルに含まれる全てのデータのキーを取得します"""
@@ -248,6 +367,210 @@ class XBRLModel(BaseXbrlModel):
         keys = list(set(keys))
 
         return keys
+
+    def get_all_items_as_dataclass(self) -> XBRLDataProtocol:
+        """ItemDict.keyをプロパティとした動的データクラスを作成し、プロパティの値をItemDict.itemにした
+        データクラスのインスタンスを返します
+
+        Returns:
+            ItemDict.keyをプロパティ名として持つデータクラスのインスタンス
+            プロパティ名はIDEで型ヒントとして認識されます
+        """
+        all_items = self.get_all_items()
+
+        # プロパティ名と値のマッピングを作成
+        field_definitions = []
+
+        # 型ヒント用の情報を収集
+        property_hints = {}
+
+        for item in all_items:
+            key = item.key
+            # Pythonの識別子として有効でない文字を置換
+            safe_key = self._make_safe_identifier(key)
+
+            # 型ヒント情報を保存（より具体的な型情報）
+            if isinstance(item.item, list):
+                property_hints[safe_key] = List[Dict[str, Any]]
+                item_type = List[Dict[str, Any]]
+            elif isinstance(item.item, dict):
+                property_hints[safe_key] = Dict[str, Any]
+                item_type = Dict[str, Any]
+            else:
+                property_hints[safe_key] = type(item.item)
+                item_type = type(item.item)
+
+            # 可変オブジェクトの場合はdefault_factoryを使用
+            if isinstance(item.item, (list, dict, set)):
+                # default_factoryを使用（具体的な型情報も付与）
+                field_definitions.append(
+                    (
+                        safe_key,
+                        item_type,
+                        field(default_factory=self._create_factory(item.item)),
+                    )
+                )
+            else:
+                # イミュータブルオブジェクトはそのまま使用
+                field_definitions.append((safe_key, item_type, item.item))
+
+        # 動的データクラスを作成
+        XBRLDataClass = make_dataclass(
+            "XBRLData",
+            field_definitions,
+            frozen=True,  # イミュータブルにする
+            namespace={
+                "__property_hints__": property_hints,  # 型ヒント情報を保存
+                "__available_properties__": [
+                    item[0] for item in field_definitions
+                ],  # 利用可能なプロパティリスト
+                "__annotations__": {
+                    item[0]: item[1] for item in field_definitions
+                },  # 型注釈を明示的に設定
+            },
+        )
+
+        # インスタンスを作成
+        instance = XBRLDataClass()
+
+        # クラスレベルで型注釈を設定（IDEサポート向上のため）
+        for prop_name, prop_type in property_hints.items():
+            if hasattr(XBRLDataClass, "__annotations__"):
+                XBRLDataClass.__annotations__[prop_name] = prop_type
+            else:
+                XBRLDataClass.__annotations__ = {prop_name: prop_type}
+
+        # プロトコルとして返すことで型ヒントを提供
+        return instance  # type: ignore
+
+    def get_dataclass_property_names(self) -> List[str]:
+        """データクラスで利用可能なプロパティ名のリストを返します
+
+        IDEでの開発支援のため、実際に利用可能なプロパティ名を事前に確認できます
+
+        Returns:
+            プロパティ名のリスト（安全な識別子に変換済み）
+        """
+        all_items = self.get_all_items()
+        property_names = []
+
+        for item in all_items:
+            safe_key = self._make_safe_identifier(item.key)
+            property_names.append(safe_key)
+
+        return property_names
+
+    def get_dataclass_property_info(self) -> Dict[str, Dict[str, Any]]:
+        """データクラスのプロパティ情報を詳細に返します
+
+        Returns:
+            プロパティ名をキーとし、以下の情報を含む辞書:
+            - original_key: 元のItemDict.key
+            - type: 値の型
+            - value_sample: 値のサンプル（最初の数要素）
+        """
+        all_items = self.get_all_items()
+        property_info = {}
+
+        for item in all_items:
+            safe_key = self._make_safe_identifier(item.key)
+
+            # サンプル値（リストの場合は最初の3要素程度）
+            value_sample = item.item
+            if isinstance(item.item, list) and len(item.item) > 3:
+                value_sample = item.item[:3] + ["...（他の要素も存在）"]
+
+            property_info[safe_key] = {
+                "original_key": item.key,
+                "type": type(item.item).__name__,
+                "value_sample": value_sample,
+                "length": (
+                    len(item.item) if isinstance(item.item, (list, dict, str)) else None
+                ),
+            }
+
+        return property_info
+
+    def _create_factory(self, value: Any):
+        """default_factory用のファクトリー関数を作成"""
+
+        def factory():
+            if isinstance(value, list):
+                return value.copy()
+            elif isinstance(value, dict):
+                return value.copy()
+            elif isinstance(value, set):
+                return value.copy()
+            else:
+                return value
+
+        return factory
+
+    def _make_safe_identifier(self, name: str) -> str:
+        """文字列をPythonの有効な識別子に変換する
+
+        Args:
+            name: 変換する文字列
+
+        Returns:
+            有効な識別子として使用できる文字列
+        """
+        import re
+
+        # 無効な文字をアンダースコアに置換
+        safe_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+
+        # 数字で始まる場合は先頭にアンダースコアを追加
+        if safe_name and safe_name[0].isdigit():
+            safe_name = "_" + safe_name
+
+        # 空文字列の場合はデフォルト名を使用
+        if not safe_name:
+            safe_name = "unknown_field"
+
+        # Pythonの予約語の場合は末尾にアンダースコアを追加
+        python_keywords = {
+            "False",
+            "None",
+            "True",
+            "and",
+            "as",
+            "assert",
+            "async",
+            "await",
+            "break",
+            "class",
+            "continue",
+            "def",
+            "del",
+            "elif",
+            "else",
+            "except",
+            "finally",
+            "for",
+            "from",
+            "global",
+            "if",
+            "import",
+            "in",
+            "is",
+            "lambda",
+            "nonlocal",
+            "not",
+            "or",
+            "pass",
+            "raise",
+            "return",
+            "try",
+            "while",
+            "with",
+            "yield",
+        }
+
+        if safe_name in python_keywords:
+            safe_name += "_"
+
+        return safe_name
 
     def ix_header(self):
         if self.ixbrl_manager:

@@ -2,7 +2,7 @@ import gc
 import pprint
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Union
 
 import requests
 from tqdm import tqdm
@@ -10,6 +10,7 @@ from tqdm import tqdm
 from app.api import endpoints as ep
 from app.exception.xbrl_model_exception import NotXbrlDirectoryException
 from app.ix_models import XBRLModel
+from app.ix_models.xbrl_model import XBRLDataProtocol
 from app.utils.utils import Utils
 
 from .exceptions import ApiInsertionException
@@ -111,25 +112,19 @@ class Insert:
 
     def set_head_active(self, head_item_key):
         url = self.url + ep.UPDATE_HEAD_ACTIVE
-        response = requests.patch(
-            url, params={"head_item_key": head_item_key}
-        )
+        response = requests.patch(url, params={"head_item_key": head_item_key})
         return response
 
     def is_active_head(self, head_item_key):
         url = self.url + ep.IS_ACTIVE_HEAD
-        response = requests.get(
-            url, params={"head_item_key": head_item_key}
-        )
+        response = requests.get(url, params={"head_item_key": head_item_key})
         if response.status_code == 200:
             return response.json()
         return False
 
     def update_head_generate(self, head_item_key):
         url = self.url + ep.UPDATE_HEAD_GENERATE
-        response = requests.patch(
-            url, params={"head_item_key": head_item_key}
-        )
+        response = requests.patch(url, params={"head_item_key": head_item_key})
         return response
 
     def insert_xbrl_zip(self, zip_path):
@@ -144,10 +139,11 @@ class Insert:
         # XBRLModelのインスタンスを作成
         model = XBRLModel(zip_path, self.output_path)
         # XBRLファイルから全てのアイテムを取得
-        items = model.get_all_items()
+        items = model.get_all_items_as_dataclass()
+
         # APIにデータを挿入
-        err_endpoints = self.__insert_api_push(items)
-        if len(err_endpoints) == 0:
+        is_success = self.__insert_api_push(items, head_item_key)
+        if is_success:
             # サマリーの挿入
             if self.generate_summary(head_item_key):
                 print(f"サマリーを生成しました: {model}")
@@ -156,8 +152,7 @@ class Insert:
             print(f"Success: {model}")
         else:
             print(model)
-            print(f"下記のエンドポイントでエラーが発生しました。")
-            pprint.pprint(err_endpoints)
+            print(f"API挿入でエラーが発生しました。")
 
     def insert_xbrl_dir(self, dir_path):
         """
@@ -189,22 +184,16 @@ class Insert:
                             self.output_path,
                             is_exist_source_file_id_api_url=is_source_file_id_api_url,
                         )
-                        items = model.get_all_items()
+                        items = model.get_all_items_as_dataclass()
                         # APIへの挿入処理
-                        is_push = self.__insert_api_push(
-                            items, head_item_key
-                        )
+                        is_push = self.__insert_api_push(items, head_item_key)
                         # サマリーの生成
                         if self.generate_summary(head_item_key):
                             pbar.write(f"サマリーを生成しました: {model}")
                         else:
-                            pbar.write(
-                                f"サマリーの生成に失敗しました: {model}"
-                            )
+                            pbar.write(f"サマリーの生成に失敗しました: {model}")
                         # 挿入結果をリストに追加
-                        all_push_results.append(
-                            is_push
-                        )  # 結果をリストに追加
+                        all_push_results.append(is_push)  # 結果をリストに追加
                         if is_push:
                             pbar.write(f"Success: {model}")
                         else:
@@ -219,61 +208,93 @@ class Insert:
             raise ApiInsertionException("全てのAPI挿入が失敗しました。")
 
     def __insert_api_push(
-        self, items: List[Dict[str, any]], head_item_key: str
+        self, data_instance: XBRLDataProtocol, head_item_key: str
     ) -> bool:
-        for item in items:
-            response = None
-            if item:
-                data = item["item"]
-                if item["key"] == "ix_file_path":
-                    response = self.file_path(data)
-                elif item["key"] == "ix_head_title":
-                    response = self.ix_head_titles(data)
-                elif item["key"].endswith("source_file"):
-                    response = self.sources(data)
+        # データクラスから利用可能なプロパティを取得
+        available_properties = data_instance.__available_properties__
 
-        def send_request(item):
-            data = item["item"]
-            if item["key"] == "sc_linkbase_ref":
+        # 最初に処理すべきプロパティ（順序が重要）
+        priority_properties = ["ix_file_path", "ix_head_title"]
+
+        # 優先プロパティを最初に処理
+        for prop_name in priority_properties:
+            if prop_name in available_properties:
+                data = getattr(data_instance, prop_name)
+                response = None
+
+                if prop_name == "ix_file_path":
+                    response = self.file_path(data)
+                elif prop_name == "ix_head_title":
+                    response = self.ix_head_titles(data)
+
+                if response and response.status_code != 200:
+                    print(
+                        f"エンドポイント({prop_name})でエラーが発生しました: {response.status_code}"
+                    )
+                    return False
+
+        # source_fileで終わるプロパティを処理
+        for prop_name in available_properties:
+            if prop_name.endswith("source_file"):
+                data = getattr(data_instance, prop_name)
+                response = self.sources(data)
+
+                if response and response.status_code != 200:
+                    print(
+                        f"エンドポイント({prop_name})でエラーが発生しました: {response.status_code}"
+                    )
+                    return False
+
+        def send_request(prop_name):
+            data = getattr(data_instance, prop_name)
+            if prop_name == "sc_linkbase_ref":
                 return self.schemas(data)
-            elif item["key"] == "ix_non_numeric":
+            elif prop_name == "ix_non_numeric":
                 return self.ix_non_numerics(data)
-            elif item["key"] == "ix_non_fraction":
+            elif prop_name == "ix_non_fraction":
                 return self.ix_non_fractions(data)
-            elif item["key"] == "lab_link_locs":
+            elif prop_name == "lab_link_locs":
                 return self.label_locs(data)
-            elif item["key"] == "lab_link_arcs":
+            elif prop_name == "lab_link_arcs":
                 return self.label_arcs(data)
-            elif item["key"] == "lab_link_values":
+            elif prop_name == "lab_link_values":
                 return self.label_values(data)
-            elif item["key"] == "cal_link_locs":
+            elif prop_name == "cal_link_locs":
                 return self.cal_locs(data)
-            elif item["key"] == "cal_link_arcs":
+            elif prop_name == "cal_link_arcs":
                 return self.cal_arcs(data)
-            elif item["key"] == "pre_link_locs":
+            elif prop_name == "pre_link_locs":
                 return self.pre_locs(data)
-            elif item["key"] == "pre_link_arcs":
+            elif prop_name == "pre_link_arcs":
                 return self.pre_arcs(data)
-            elif item["key"] == "def_link_locs":
+            elif prop_name == "def_link_locs":
                 return self.def_locs(data)
-            elif item["key"] == "def_link_arcs":
+            elif prop_name == "def_link_arcs":
                 return self.def_arcs(data)
-            elif item["key"] == "qualitative_info":
+            elif prop_name == "qualitative_info":
                 return self.qualitative(data)
             return None
 
+        # 残りのプロパティを並列処理
+        remaining_properties = [
+            prop
+            for prop in available_properties
+            if prop not in priority_properties and not prop.endswith("source_file")
+        ]
+
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(send_request, item): item for item in items
+                executor.submit(send_request, prop_name): prop_name
+                for prop_name in remaining_properties
             }
 
             for future in as_completed(futures):
-                item = futures[future]
+                prop_name = futures[future]
                 try:
                     response = future.result()
                     if response and response.status_code != 200:
                         print(
-                            f"エンドポイント({response.url})にデータを追加できませんでした。ステータスコード: {response.status_code}"
+                            f"エンドポイント({prop_name})にデータを追加できませんでした。ステータスコード: {response.status_code}"
                         )
                         return False
                 except Exception as e:
@@ -293,9 +314,7 @@ class Insert:
         """
 
         response = requests.post(
-            self.url
-            + ep.POST_TITLE_SUMMARY
-            + f"?head_item_key={head_item_key}",
+            self.url + ep.POST_TITLE_SUMMARY + f"?head_item_key={head_item_key}",
             headers={"Content-Type": "application/json"},
         )
         if response.status_code != 200:

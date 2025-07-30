@@ -13,11 +13,22 @@ from app.utils import Utils
 
 T = TypeVar("T", bound=BaseXBRLParser)
 
+# XBRLアイテムの値として許可される型
+XBRLValue = Union[
+    str,
+    int,
+    float,
+    bool,
+    None,
+    List[str],
+    Dict[str, Union[str, int, float, bool, None]],
+]
+
 
 class ItemDict:
     id: str
     key: str
-    item: List[Dict[str, Any]]
+    item: List[Dict[str, XBRLValue]]
     sort_position: int
 
 
@@ -81,13 +92,13 @@ class BaseXbrlManager(Generic[T]):
         self,
         id: str,
         key: str,
-        items: List[Union[Dict[str, Any], BaseTag]],
+        items: List[Union[Dict[str, XBRLValue], BaseTag]],
         sort_position: int = 999,
     ) -> None:
         """アイテムを設定する"""
 
         # itemsをList[dict]型に変換する
-        items_dicts: List[Dict[str, Any]] = []
+        items_dicts: List[Dict[str, XBRLValue]] = []
         for item in items:
             if isinstance(item, dict):
                 items_dicts.append(item)
