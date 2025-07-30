@@ -241,7 +241,8 @@ class XBRLModel(BaseXbrlModel):
         """XBRLファイルに含まれる全てのデータのキーを取得します"""
         keys: List[str] = []
         for item in self.all_items:
-            keys.append(item["key"])
+            key = item.key if hasattr(item, "key") else item["key"]
+            keys.append(key)
 
         # keysの重複を削除
         keys = list(set(keys))
