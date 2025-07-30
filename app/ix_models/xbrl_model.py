@@ -2,7 +2,7 @@ import threading
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, TypedDict, Union
 
 from app.exception import XbrlListEmptyError
 from app.ix_manager import (
@@ -19,6 +19,13 @@ from app.ix_manager.link_manager import LinkHrefMasterManager
 from app.ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
+
+
+class XBRLItem(TypedDict):
+    """XBRLデータのアイテム型定義"""
+
+    key: str
+    item: Dict[str, Union[str, int, float, bool, None]]
 
 
 class XBRLModel(BaseXbrlModel):
@@ -38,7 +45,7 @@ class XBRLModel(BaseXbrlModel):
         self.is_exist_source_file_id_api_url: Optional[str] = (
             is_exist_source_file_id_api_url
         )
-        self.__all_items: Optional[List[Dict[str, Any]]] = None
+        self.__all_items: Optional[List[XBRLItem]] = None
         self._ixbrl_manager: Optional[IXBRLManager] = None
         self._label_manager: Optional[LabelManager] = None
         self._cal_link_manager: Optional[CalLinkManager] = None
@@ -137,7 +144,7 @@ class XBRLModel(BaseXbrlModel):
         return self._qualitative_manager
 
     @property
-    def all_items(self) -> List[Dict[str, Any]]:
+    def all_items(self) -> List[XBRLItem]:
         if self.__all_items is None:
             self.__all_items = self.get_all_items()
         return self.__all_items
@@ -205,16 +212,16 @@ class XBRLModel(BaseXbrlModel):
             for value in self.ixbrl_manager.ixbrl_roles():
                 yield value
 
-    def get_all_items(self) -> List[Dict[str, Any]]:
+    def get_all_items(self) -> List[XBRLItem]:
         """<p>XBRLファイルに含まれる全てのデータを取得します。</p>
         <p>取得した辞書のキーはget_all_items_keys()で取得できます</p>
         """
         # ixbrl_managerの初期化が完了するまで待機
         # self.ixbrl_manager_initialized.wait()
         # マネージャークラスの
-        lists: List[Dict[str, Any]] = []
+        lists: List[XBRLItem] = []
 
-        file_path: Dict[str, Any] = {  # ファイルパスを追加
+        file_path: XBRLItem = {  # ファイルパスを追加
             "key": "ix_file_path",
             "item": self.get_file_path().model_dump(),
         }
