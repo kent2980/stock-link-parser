@@ -10,14 +10,14 @@ else
     TEST_PATH=tests/$1/
 fi
 
-# Step 1: Run pytest with coverage
-coverage run -m pytest $TEST_PATH
+# Step 1: Run pytest with coverage using uv
+uv run coverage run -m pytest $TEST_PATH
 
-# Step 2: Generate HTML coverage report
-coverage html
+# Step 2: Generate HTML coverage report using uv
+uv run coverage html
 
-# Step 3: Report the coverage summary
-coverage report -m
+# Step 3: Report the coverage summary using uv
+uv run coverage report -m
 
 # Step 3: Open the HTML report in the default web browser
 # The report is generated in the 'htmlcov' directory
