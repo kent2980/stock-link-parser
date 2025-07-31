@@ -16,7 +16,6 @@ class LabelParser(BaseXBRLParser):
         head_item_key: Optional[str] = None,
         is_exist_source_file_id_api_url: Optional[str] = None,
     ) -> None:
-
         super().__init__(
             xbrl_url,
             output_path,
@@ -41,7 +40,6 @@ class LabelParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name=["link:label", "label"])
         for tag in tags:
-
             xlink_label = tag.get("xlink:label")
 
             lv = LabelValue(
@@ -68,7 +66,6 @@ class LabelParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name=["link:loc", "loc"])
         for tag in tags:
-
             # _____attr[xlink:href]
             if tag.get("xlink:href"):
                 xlink_schema = tag.get("xlink:href").split("#")[0].split("/")[-1]
@@ -107,7 +104,6 @@ class LabelParser(BaseXBRLParser):
         lists: List[LabelArc] = []
         tags = self.soup.find_all(name=["link:labelArc", "labelArc"])
         for tag in tags:
-
             la = LabelArc(
                 xlink_type=tag.get("xlink:type"),
                 xlink_arcrole=tag.get("xlink:arcrole"),

@@ -2,7 +2,6 @@ import hashlib
 import re
 import time
 import uuid
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 import pandas
@@ -26,7 +25,6 @@ class QualitativeParser(BaseXBRLParser):
         self._assert_valid_basename("qualitative.htm")
 
     def set_qualitative_info(self) -> "QualitativeParser":
-
         # region プロパティの初期化
 
         type: Optional[str] = None
@@ -49,7 +47,6 @@ class QualitativeParser(BaseXBRLParser):
 
         index = 0
         for div_tag in div_tags:
-
             # region タグの抽出
 
             target_class = [
@@ -72,7 +69,6 @@ class QualitativeParser(BaseXBRLParser):
             # endregion
 
             for i, tag in enumerate(text_tags):
-
                 # テキストを整形処理
                 text = scraping_text_transform(tag.get_text())
 
@@ -154,7 +150,6 @@ class QualitativeParser(BaseXBRLParser):
                     subtitleId = item.currentId
             if subtitleId == item.parentId:
                 if item.type == "heading":
-
                     if item.photo_url is not None:
                         continue
 
@@ -218,67 +213,6 @@ def classify_text_and_set_ids(
     subTitleId: Optional[str],
     headingId: Optional[str],
 ) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str], str]:
-    """テキストタイプとIDを設定する関数"""
-
-    if re.match(r"^[0-9]\.(?!.*…)", text):
-        type = "title"
-        titleId = currentId
-        subTitleId, headingId, parentId = None, None, None
-    elif re.match(r"^\([0-9]\)", text):
-        type = "sub_title"
-        subTitleId = currentId
-        headingId = None
-        parentId = titleId
-    elif (
-        re.match(
-            r"^\【.*\】$|^\[.*\]$|^\(.*\)$|^[①-⑨].*|^\「.*\」$|^\<.*\>$|^.\..*",
-            text,
-        )
-        and re.match(r"^(?!.*\(注.*\)).*", text)
-        and not re.match(r"^(?=.*です.*)|^(?=.*ます.*)", text)
-    ):
-        type = "heading"
-        headingId = currentId
-        if subTitleId is None:
-            parentId = titleId
-        else:
-            parentId = subTitleId
-    elif re.match(r".*事業$", text):
-        type = "heading"
-        headingId = currentId
-        if subTitleId is None:
-            parentId = titleId
-        else:
-            parentId = subTitleId
-    elif re.match(r".*セグメント$", text):
-        type = "heading"
-        headingId = currentId
-        if subTitleId is None:
-            parentId = titleId
-        else:
-            parentId = subTitleId
-    else:
-        type = "content"
-        if headingId is None:
-            parentId = subTitleId
-            if subTitleId is None:
-                parentId = titleId
-        else:
-            parentId = headingId
-
-    return parentId, titleId, subTitleId, headingId, type
-
-
-def get_hash_id(head_item_key, text, source_file_id, index):
-    """固有のIDを生成する関数"""
-
-    hash_object = hashlib.md5(
-        f"{head_item_key}{text}{source_file_id}{str(index)}".encode()
-    )
-    return str(uuid.UUID(hash_object.hexdigest()))
-
-
-def classify_text_and_set_ids(text, currentId, titleId, subTitleId, headingId):
     """テキストタイプとIDを設定する関数"""
 
     if re.match(r"^[0-9]\.(?!.*…)", text):

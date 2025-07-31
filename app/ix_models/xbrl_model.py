@@ -1,7 +1,7 @@
 import threading
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, field, make_dataclass
+from dataclasses import field, make_dataclass
 from pathlib import Path
 from typing import (
     Any,

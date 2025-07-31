@@ -78,19 +78,12 @@ class Insert:
                 print(data)
                 url = self.url + ep.POST_WIKI
                 response = requests.post(url, json=data)
-                if (
-                    response.status_code == 201
-                    or response.status_code == 200
-                ):
+                if response.status_code == 201 or response.status_code == 200:
                     print(f"データを追加しました: {data}", end="\n\n")
                 elif response.status_code == 400:
-                    print(
-                        f"データが既に存在しています: {data}", end="\n\n"
-                    )
+                    print(f"データが既に存在しています: {data}", end="\n\n")
                 else:
-                    print(
-                        f"データの追加に失敗しました: {data}", end="\n\n"
-                    )
+                    print(f"データの追加に失敗しました: {data}", end="\n\n")
             except NotDataFoundError:
                 print(
                     f"データが見つかりませんでした: {code}, {name}",

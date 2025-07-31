@@ -1,23 +1,6 @@
-import pprint
-from pathlib import Path
-from time import sleep
-from typing import Dict, List, Union
-
 import pytest
-import requests
-from tqdm import tqdm
 
-from app.ix_manager import (
-    BaseXbrlManager,
-    CalLinkManager,
-    DefLinkManager,
-    IXBRLManager,
-    LabelManager,
-    PreLinkManager,
-)
 from app.ix_models import XBRLModel
-from app.ix_models.xbrl_model import XBRLItem
-from app.ix_tag import IxHeader
 
 
 @pytest.fixture
@@ -256,9 +239,9 @@ def test_get_all_items_comprehensive(xbrl_model_edjp):
     found_keys = set(keys)
 
     for required_key in required_keys:
-        assert (
-            required_key in found_keys
-        ), f"Required key '{required_key}' not found in all_items"
+        assert required_key in found_keys, (
+            f"Required key '{required_key}' not found in all_items"
+        )
 
     print(
         f"✅ Test passed: Found {len(all_items)} items with {len(set(keys))} unique keys"

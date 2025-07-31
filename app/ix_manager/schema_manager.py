@@ -64,7 +64,6 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
         rows: List[List] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.elements()
@@ -81,7 +80,6 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
         rows: List[List] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.import_schemas()
@@ -98,7 +96,6 @@ class SchemaManager(BaseXbrlManager[SchemaParser]):
         rows: List[List] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_base_refs(exclude=exclude)

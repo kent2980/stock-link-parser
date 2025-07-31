@@ -111,7 +111,6 @@ class LabelManager(BaseXbrlManager[LabelParser]):
         rows = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_labels()
@@ -138,7 +137,6 @@ class LabelManager(BaseXbrlManager[LabelParser]):
         rows = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_label_locs()
@@ -165,7 +163,6 @@ class LabelManager(BaseXbrlManager[LabelParser]):
         rows = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_label_arcs()

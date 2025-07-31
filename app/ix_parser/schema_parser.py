@@ -26,7 +26,6 @@ class SchemaParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name="import")
         for tag in tags:
-
             si = SchemaImport(
                 schema_location=tag.get("schemaLocation"),
                 name_space=tag.get("namespace"),
@@ -48,7 +47,6 @@ class SchemaParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name="linkbaseRef")
         for tag in tags:
-
             xlink_href = tag.get("xlink:href")
             if xlink_href:
                 if xlink_href.startswith("http"):
@@ -86,7 +84,6 @@ class SchemaParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name="element")
         for tag in tags:
-
             se = SchemaElement(
                 id=tag.get("id"),
                 xbrli_balance=tag.get("xbrli:balance"),

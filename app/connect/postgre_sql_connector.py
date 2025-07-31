@@ -114,9 +114,7 @@ class PostgreSqlConnector:
         """
         try:
             cursor = self.connection.cursor()
-            query = (
-                f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-            )
+            query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
             cursor.execute(query)
             self.connection.commit()
             print("Data added successfully!")
@@ -143,7 +141,7 @@ class PostgreSqlConnector:
             cursor = self.connection.cursor()
             for _, row in df.iterrows():
                 query = f"INSERT INTO {table_name} ({', '.join(df.columns)})\
-                    VALUES ({', '.join(['%s']*len(df.columns))})"
+                    VALUES ({', '.join(['%s'] * len(df.columns))})"
                 cursor.execute(query, tuple(row))
             self.connection.commit()
             print("Data added successfully!")
@@ -204,9 +202,7 @@ class PostgreSqlConnector:
                 cursor.close()
 
     # 既存のテーブルに外部キー制約を追加する関数を追加
-    def add_foreign_key(
-        self, table_name, column_name, ref_table, ref_column
-    ):
+    def add_foreign_key(self, table_name, column_name, ref_table, ref_column):
         """テーブルに外部キー制約を追加
 
         Args:
@@ -294,7 +290,7 @@ class PostgreSqlConnector:
             cursor = self.connection.cursor()
             for _, row in df.iterrows():
                 query = f"INSERT INTO {table_name} ({', '.join(df.columns)}) \
-                    VALUES ({', '.join(['%s']*len(df.columns))}) \
+                    VALUES ({', '.join(['%s'] * len(df.columns))}) \
                         ON CONFLICT DO NOTHING"
                 cursor.execute(query, tuple(row))
             self.connection.commit()

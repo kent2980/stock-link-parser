@@ -7,9 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class BaseTag(BaseModel):
     """Base class for tags"""
 
-    item_key: str = Field(
-        default=None, min_length=36, max_length=36
-    )  # uuidを設定
+    item_key: str = Field(default=None, min_length=36, max_length=36)  # uuidを設定
 
     @classmethod
     def keys(cls):
@@ -61,9 +59,7 @@ class SourceFile(BaseTag):
 class FilePath(BaseTag):
     """ファイルパス情報を格納するクラス"""
 
-    head_item_key: Optional[str] = Field(
-        default=None, max_length=36, min_length=36
-    )
+    head_item_key: Optional[str] = Field(default=None, max_length=36, min_length=36)
     path: Optional[str] = Field(default=None)
 
     def __init__(self, **data):

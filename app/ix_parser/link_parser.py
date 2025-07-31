@@ -71,7 +71,6 @@ class BaseLinkParser(BaseXBRLParser):
         lists: List[LinkLoc] = []
 
         for link_tag in link_tags:
-
             attr_value = link_tag.get("xlink:role").split("_")[-1]
 
             # httpが含まれている場合は、attr_valueを変更
@@ -83,7 +82,6 @@ class BaseLinkParser(BaseXBRLParser):
 
             tags = link_tag.find_all(["link:loc", "loc"])
             for tag in tags:
-
                 # _____attr[xlink:href]
                 xlink_schema = tag.get("xlink:href").split("#")[0]
                 xlink_href = tag.get("xlink:href").split("#")[1]
@@ -114,7 +112,6 @@ class BaseLinkParser(BaseXBRLParser):
 
         lists: List[LinkArc] = []
         for link_tag in link_tags:
-
             attr_value = link_tag.get("xlink:role").split("_")[-1]
 
             # httpが含まれている場合は、attr_valueを変更
@@ -164,7 +161,6 @@ class BaseLinkParser(BaseXBRLParser):
 
         tags = self.soup.find_all(name=["link:linkbase", "linkbase"])
         for tag in tags:
-
             lb = LinkBase(
                 head_item_key=self.head_item_key,
                 xmlns_xlink=tag.get("xmlns:xlink"),
@@ -188,7 +184,6 @@ class BaseLinkParser(BaseXBRLParser):
 
         tags = self.soup.find_all(self.link_tag_name)
         for tag in tags:
-
             lt = LinkTag(
                 head_item_key=self.head_item_key,
                 xlink_type=tag.get("xlink:type"),

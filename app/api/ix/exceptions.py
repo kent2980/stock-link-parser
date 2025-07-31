@@ -1,9 +1,7 @@
 class NotXbrlDirectoryException(Exception):
     """XBRLディレクトリではない場合に発生する例外"""
 
-    def __init__(
-        self, message="指定されたディレクトリはXBRL形式ではありません。"
-    ):
+    def __init__(self, message="指定されたディレクトリはXBRL形式ではありません。"):
         self.message = message
         super().__init__(self.message)
 

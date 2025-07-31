@@ -77,7 +77,6 @@ def get_xbrl_test_label(get_xbrl_in_edjp):
 
 @pytest.fixture(scope="module")
 def get_api_url():
-
     url_base = "/api/v1/xbrl"
 
     urls = {

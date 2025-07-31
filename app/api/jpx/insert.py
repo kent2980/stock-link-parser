@@ -29,7 +29,6 @@ class Insert:
 
 
 if __name__ == "__main__":
-
     if len(sys.argv) < 2:
         print("引数が不足しています。以下の形式で指定してください:")
         print("python latest_insert.py <api_base_url>")

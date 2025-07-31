@@ -1,6 +1,5 @@
 from typing import List, Optional
 
-from app.exception import XbrlListEmptyError
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import QualitativeParser
 from app.ix_tag import QualitativeDocument
@@ -56,7 +55,6 @@ class QualitativeManager(BaseXbrlManager[QualitativeParser]):
         rows: List[List[QualitativeDocument]] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.set_qualitative_info()

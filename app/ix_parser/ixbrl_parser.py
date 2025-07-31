@@ -81,7 +81,6 @@ class IxbrlParser(BaseXBRLParser):
 
     def __set_ixbrl_role(self) -> Dict[str, str]:
         """ドキュメントの要素を設定する"""
-        const = Utils.read_const_json()
         file_name = self.basename
         ixbrl_type = file_name.split("-")[1]
         role: Dict[str, str] = {}
@@ -129,7 +128,6 @@ class IxbrlParser(BaseXBRLParser):
         tags = self.soup.find_all(name="ix:nonNumeric")
 
         for tag in tags:
-
             # _____attr[contextRef]
             context = str(tag.get("contextRef")).split("_")
 
@@ -352,7 +350,6 @@ class IxbrlParser(BaseXBRLParser):
         return self
 
     def set_ix_context(self) -> "IxbrlParser":
-
         if self.__ix_context:
             self._set_data(self.__ix_context)
             return self

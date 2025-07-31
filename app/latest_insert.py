@@ -21,9 +21,7 @@ if __name__ == "__main__":
     # コマンドライン引数を取得
     if len(sys.argv) < 3:
         print("引数が不足しています。以下の形式で指定してください:")
-        print(
-            "python latest_insert.py <targetDir> <api_base_url> [select_date]"
-        )
+        print("python latest_insert.py <targetDir> <api_base_url> [select_date]")
         sys.exit(1)  # 実行をスキップ
         # finaryの処理を実行
 
@@ -34,7 +32,7 @@ if __name__ == "__main__":
     else:
         select_date = datetime.now().strftime("%Y-%m-%d")
 
-    print(f"引数を取得しました:")
+    print("引数を取得しました:")
     print(f"outputPath: {outputPath}")
     print(f"target: {target}")
     print(f"api_base_url: {api_base_url}")
@@ -62,14 +60,12 @@ if __name__ == "__main__":
 
                 # 昨日までのデータを取得
                 if today < yesterday:
-                    print(
-                        "指定された日付よりも前の日付です。処理を終了します。"
-                    )
+                    print("指定された日付よりも前の日付です。処理を終了します。")
                     break
 
                 insert.insert_xbrl_dir(targetDir.as_posix())
                 today -= timedelta(days=1)
-            except ApiInsertionException as e:
+            except ApiInsertionException:
                 today -= timedelta(days=1)
                 continue
 

@@ -1,8 +1,6 @@
 import gc
-import pprint
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Union
 
 import requests
 from tqdm import tqdm
@@ -152,7 +150,7 @@ class Insert:
             print(f"Success: {model}")
         else:
             print(model)
-            print(f"API挿入でエラーが発生しました。")
+            print("API挿入でエラーが発生しました。")
 
     def insert_xbrl_dir(self, dir_path):
         """

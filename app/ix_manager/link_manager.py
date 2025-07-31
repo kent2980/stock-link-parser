@@ -2,8 +2,7 @@ from typing import List, Optional
 
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import BaseLinkParser, CalLinkParser, DefLinkParser, PreLinkParser
-from app.ix_parser.base_xbrl_parser import BaseXBRLParser
-from app.ix_tag.link import LinkArc, LinkHrefMaster, LinkLoc, LinkRole
+from app.ix_tag.link import LinkHrefMaster, LinkRole
 
 
 class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
@@ -96,7 +95,6 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         if self.document_type is not None:
             files = files.query(f"document_type == '{self.document_type}'")
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_roles()
@@ -121,7 +119,6 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         if self.document_type is not None:
             files = files.query(f"document_type == '{self.document_type}'")
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_locs()
@@ -145,7 +142,6 @@ class BaseLinkManager(BaseXbrlManager[BaseLinkParser]):
         if self.document_type is not None:
             files = files.query(f"document_type == '{self.document_type}'")
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.link_arcs()
@@ -288,7 +284,6 @@ class PreLinkManager(BaseLinkManager):
 
 
 class LinkHrefMasterManager(BaseLinkManager):
-
     def __init__(
         self,
         directory_path: str,

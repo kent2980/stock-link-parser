@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -28,7 +28,6 @@ class BaseXBRLParser:
         head_item_key: Optional[str] = None,
         is_exist_source_file_id_api_url: Optional[str] = None,
     ) -> None:
-
         # urlの検証を行います
         self.__assert_valid_url(xbrl_url, output_path)
 
@@ -262,7 +261,6 @@ class BaseXBRLParser:
         """リクエストが存在するか判定する"""
 
         if self.__is_exist_source_file_id_api_url:
-
             key = self.source_file.source_file_id
             if self.source_file.type == "url":
                 response = requests.get(

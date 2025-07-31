@@ -45,7 +45,7 @@ if __name__ == "__main__":
                         continue
 
                     date_str = date.strftime("%Y%m%d")
-                    target_dir = f"{doc_dir}/{date.strftime("%Y年")}/{date.strftime("%m月")}/{date_str}"
+                    target_dir = f"{doc_dir}/{date.strftime('%Y年')}/{date.strftime('%m月')}/{date_str}"
                     if os.path.exists(target_dir):
                         try:
                             insert = Insert(output_path, api_base_url)
@@ -53,9 +53,7 @@ if __name__ == "__main__":
                         except ApiInsertionException:
                             continue
                     else:
-                        print(
-                            f"指定されたディレクトリが存在しません: {target_dir}"
-                        )
+                        print(f"指定されたディレクトリが存在しません: {target_dir}")
                         continue
                 if not loop:
                     break

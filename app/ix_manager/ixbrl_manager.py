@@ -1,8 +1,7 @@
 import re
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from app.exception import XbrlListEmptyError
-from app.exception.xbrl_model_exception import NotXbrlDirectoryException
 from app.exception.xbrl_parser_exception import DocumentNameTagNotFoundError
 from app.ix_manager import BaseXbrlManager
 from app.ix_parser import IxbrlParser
@@ -98,7 +97,6 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         rows: List[List[IxNonFraction]] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.set_ix_non_fraction()
@@ -127,7 +125,6 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         rows: List[List[IxNonNumeric]] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             data = parser.set_ix_non_numeric()
@@ -152,7 +149,6 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         rows: List[List[IxContext]] = []
 
         for parser in self.parsers:
-
             id = parser.source_file_id
 
             parser = parser.set_ix_context()
