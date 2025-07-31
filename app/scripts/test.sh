@@ -10,16 +10,27 @@ else
     TEST_PATH=tests/$1/
 fi
 
-# Step 1: Run pytest with coverage using uv
+# Step 1: Run ruff linting
+echo "Running ruff linting..."
+uv run ruff check . --exit-zero
+
+# Step 2: Run ruff formatting check
+echo "Running ruff formatting check..."
+uv run ruff format --check . || true
+
+# Step 3: Run pytest with coverage using uv
+echo "Running tests with coverage..."
 uv run coverage run -m pytest $TEST_PATH
 
-# Step 2: Generate HTML coverage report using uv
+# Step 4: Generate HTML coverage report using uv
+echo "Generating HTML coverage report..."
 uv run coverage html
 
-# Step 3: Report the coverage summary using uv
+# Step 5: Report the coverage summary using uv
+echo "Coverage summary:"
 uv run coverage report -m
 
-# Step 3: Open the HTML report in the default web browser
+# Step 6: Open the HTML report in the default web browser
 # The report is generated in the 'htmlcov' directory
 # if [ -f htmlcov/index.html ]; then
     # open htmlcov/index.html  # macOS
