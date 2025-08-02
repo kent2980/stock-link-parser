@@ -3,6 +3,7 @@
 main/
 extract_csv/
 doc/
+Logs/
 Log/
 .vscode/
 .pytest_cache/

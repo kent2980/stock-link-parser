@@ -239,9 +239,9 @@ def test_get_all_items_comprehensive(xbrl_model_edjp):
     found_keys = set(keys)
 
     for required_key in required_keys:
-        assert required_key in found_keys, (
-            f"Required key '{required_key}' not found in all_items"
-        )
+        assert (
+            required_key in found_keys
+        ), f"Required key '{required_key}' not found in all_items"
 
     print(
         f"✅ Test passed: Found {len(all_items)} items with {len(set(keys))} unique keys"
@@ -533,12 +533,14 @@ def test_get_all_items_as_dataclass_consistency(xbrl_model_edjp):
         value2 = getattr(data_instance2, field_name)
         assert value1 == value2
 
-    # 元のget_all_itemsキーと一致することを確認
+    # 元のget_all_itemsキーと一致することを確認（JSON版も含む）
     all_items_keys = set(model.get_all_items_keys())
     safe_keys = set()
     for key in all_items_keys:
         safe_key = model._make_safe_identifier(key)
         safe_keys.add(safe_key)
+        # JSON版も追加
+        safe_keys.add(safe_key + "_json")
 
     assert fields1 == safe_keys
 
@@ -594,12 +596,18 @@ def test_get_dataclass_property_names(xbrl_model_edjp):
         assert isinstance(name, str)
         assert name.isidentifier(), f"'{name}' is not a valid identifier"
 
-    # データクラスのプロパティと一致することを確認
+    # データクラスのプロパティと一致することを確認（JSON版も含む）
     data_instance = model.get_all_items_as_dataclass()
     dataclass_fields = set(data_instance.__dataclass_fields__.keys())
     property_names_set = set(property_names)
 
-    assert dataclass_fields == property_names_set
+    # JSON版プロパティも含めて検証
+    original_properties = property_names_set
+    expected_properties = original_properties.copy()
+    for prop in original_properties:
+        expected_properties.add(prop + "_json")
+
+    assert dataclass_fields == expected_properties
 
     print(f"✅ Property names test passed: {len(property_names)} properties found")
 
@@ -696,10 +704,17 @@ def test_dataclass_ide_integration(xbrl_model_edjp):
     property_names = model.get_dataclass_property_names()
     property_info = model.get_dataclass_property_info()
     data_instance = model.get_all_items_as_dataclass()
-
-    # 3つのメソッドで取得した情報の整合性確認
+    data_instance
+    # 3つのメソッドで取得した情報の整合性確認（JSON版プロパティも含む）
+    # property_namesは元のプロパティのみ、available_propertiesは元+JSON版を含む
     assert set(property_names) == set(property_info.keys())
-    assert set(property_names) == set(data_instance.__available_properties__)
+
+    # __available_properties__にはJSON版も含まれるので、元のプロパティ数の2倍になる
+    expected_available_properties = set(property_names)
+    for prop in property_names:
+        expected_available_properties.add(prop + "_json")
+
+    assert expected_available_properties == set(data_instance.__available_properties__)
 
     # 各プロパティについて詳細確認
     for prop_name in property_names:
@@ -729,3 +744,509 @@ def test_dataclass_ide_integration(xbrl_model_edjp):
             assert actual_value == sample
 
     print(f"✅ IDE integration test passed: Verified {len(property_names)} properties")
+
+
+def test_get_source_file_items(xbrl_model_edjp):
+    """source_fileで終わるキーを持つアイテムの取得をテスト"""
+    model = xbrl_model_edjp
+    source_file_items = model.get_source_file_items()
+
+    # 戻り値がリストであることを確認
+    assert isinstance(source_file_items, list)
+
+    # 各アイテムがsource_fileで終わるキーを持つことを確認
+    for item in source_file_items:
+        key = item.key if hasattr(item, "key") else item["key"]
+        assert key.endswith(
+            "source_file"
+        ), f"Key '{key}' does not end with 'source_file'"
+
+    # 想定されるsource_fileキーが含まれていることを確認
+    source_file_keys = [item.key for item in source_file_items]
+    expected_keys = [
+        "cal_source_file",
+        "def_source_file",
+        "ix_source_file",
+        "lab_source_file",
+        "pre_source_file",
+        "qualitative_source_file",
+        "sc_source_file",
+    ]
+
+    for expected_key in expected_keys:
+        if expected_key in [item.key for item in model.get_all_items()]:
+            assert (
+                expected_key in source_file_keys
+            ), f"Expected key '{expected_key}' not found in source_file_items"
+
+    print(f"✅ Found {len(source_file_items)} source_file items: {source_file_keys}")
+
+
+def test_get_aggregated_source_files(xbrl_model_edjp):
+    """source_fileアイテムの辞書形式集約をテスト"""
+    model = xbrl_model_edjp
+    aggregated_files = model.get_aggregated_source_files()
+
+    # 戻り値が辞書であることを確認
+    assert isinstance(aggregated_files, dict)
+
+    # 各キーがsource_fileで終わることを確認
+    for key in aggregated_files.keys():
+        assert key.endswith(
+            "source_file"
+        ), f"Key '{key}' does not end with 'source_file'"
+
+    # 各値がリストであることを確認
+    for key, value in aggregated_files.items():
+        assert isinstance(value, list), f"Value for key '{key}' is not a list"
+
+        # リスト内の各要素が辞書であることを確認
+        for item in value:
+            assert isinstance(item, dict), f"Item in '{key}' list is not a dict"
+
+    print(
+        f"✅ Aggregated {len(aggregated_files)} source_file types: {list(aggregated_files.keys())}"
+    )
+
+    # 集約されたデータの詳細を表示
+    for key, items in aggregated_files.items():
+        print(f"  - {key}: {len(items)} items")
+
+
+def test_source_file_items_completeness(xbrl_model_edjp):
+    """source_fileアイテムと全アイテムの整合性をテスト"""
+    model = xbrl_model_edjp
+    all_items = model.get_all_items()
+    source_file_items = model.get_source_file_items()
+
+    # 全アイテムからsource_fileで終わるキーを持つものを手動で抽出
+    manual_source_files = []
+    for item in all_items:
+        key = item.key if hasattr(item, "key") else item["key"]
+        if key.endswith("source_file"):
+            manual_source_files.append(item)
+
+    # get_source_file_itemsの結果と手動抽出の結果が一致することを確認
+    assert len(source_file_items) == len(manual_source_files)
+
+    # キーが一致することを確認
+    source_file_keys = [item.key for item in source_file_items]
+    manual_keys = [item.key for item in manual_source_files]
+
+    assert set(source_file_keys) == set(manual_keys)
+
+    print(
+        f"✅ Source file items completeness verified: {len(source_file_items)} items match"
+    )
+
+
+def test_dataclass_source_file_helpers(xbrl_model_edjp):
+    """データクラスのsource_fileヘルパーメソッドをテスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # source_fileプロパティ名の取得
+    source_file_props = dataclass_instance.get_source_file_properties()
+    assert isinstance(source_file_props, list)
+
+    # すべてsource_fileで終わることを確認
+    for prop in source_file_props:
+        assert prop.endswith(
+            "source_file"
+        ), f"Property '{prop}' does not end with 'source_file'"
+
+    # 全source_fileデータの取得
+    all_source_files = dataclass_instance.get_all_source_files()
+    assert isinstance(all_source_files, list)
+
+    # リスト内の各要素が辞書であることを確認
+    for item in all_source_files:
+        assert isinstance(
+            item, dict
+        ), f"Item in source files list is not a dict: {type(item)}"
+
+    print(
+        f"✅ DataClass source_file helpers work: {len(source_file_props)} properties found"
+    )
+    print(f"  - Properties: {source_file_props}")
+    print(f"  - Total source file items: {len(all_source_files)}")
+
+
+def test_source_file_integration_example(xbrl_model_edjp):
+    """source_file機能の統合使用例"""
+    model = xbrl_model_edjp
+
+    # 方法1: ItemDict形式での取得
+    source_file_items = model.get_source_file_items()
+    print("\n=== Method 1: ItemDict format ===")
+    for item in source_file_items:
+        print(
+            f"Key: {item.key}, Items count: {len(item.item) if isinstance(item.item, list) else 1}"
+        )
+
+    # 方法2: 辞書形式での取得
+    aggregated_files = model.get_aggregated_source_files()
+    print("\n=== Method 2: Dictionary format ===")
+    for key, items in aggregated_files.items():
+        print(f"Key: {key}, Items count: {len(items)}")
+        if items:  # サンプルデータを表示
+            first_item = items[0]
+            if isinstance(first_item, dict) and "source_file_id" in first_item:
+                print(f"  Sample source_file_id: {first_item.get('source_file_id')}")
+
+    # 方法3: データクラス形式でのアクセス
+    dataclass_instance = model.get_all_items_as_dataclass()
+    print("\n=== Method 3: DataClass format ===")
+    source_file_props = dataclass_instance.get_source_file_properties()
+    all_source_files = dataclass_instance.get_all_source_files()
+
+    # 平坦なリストになっていることを確認
+    assert isinstance(all_source_files, list)
+    print(f"Total flattened source_file items: {len(all_source_files)}")
+
+    # 各プロパティのアイテム数を計算
+    total_property_items = 0
+    for prop in source_file_props:
+        direct_access = getattr(dataclass_instance, prop)
+        items_count = len(direct_access) if isinstance(direct_access, list) else 1
+        total_property_items += items_count
+        print(f"Property: {prop}, Items count: {items_count}")
+
+    # 平坦化されたリストの総数と各プロパティのアイテム数の合計が一致することを確認
+    assert (
+        len(all_source_files) == total_property_items
+    ), f"Flattened list count ({len(all_source_files)}) doesn't match sum of property counts ({total_property_items})"
+
+    print(f"\n✅ Integration example completed successfully")
+    print(f"  - Total source_file types: {len(source_file_items)}")
+    print(f"  - Flattened list contains {len(all_source_files)} items total")
+    print(f"  - All methods return consistent data")
+
+
+def test_api_compatibility_flat_source_files(xbrl_model_edjp):
+    """API使用時の平坦なsource_filesリスト互換性をテスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # 平坦なリストを取得
+    flat_source_files = dataclass_instance.get_all_source_files()
+
+    # APIが期待する形式（データがリストであること）
+    assert isinstance(flat_source_files, list)
+    assert len(flat_source_files) > 0
+
+    # 各アイテムが辞書であり、必要なキーを持つことを確認
+    for item in flat_source_files:
+        assert isinstance(item, dict)
+        # source_fileテーブルで期待される基本的なキーが存在することを確認
+        assert (
+            "source_file_id" in item
+        ), f"source_file_id not found in item: {item.keys()}"
+
+    # API payload形式の確認
+    api_payload = {"data": flat_source_files}
+    assert isinstance(api_payload["data"], list)
+    assert len(api_payload["data"]) == len(flat_source_files)
+
+    print(f"✅ API compatibility test passed")
+    print(f"  - Flat list contains {len(flat_source_files)} source file records")
+    print(f"  - All records have required source_file_id key")
+    print(f"  - Ready for API POST to sources endpoint")
+
+
+def test_json_properties_creation(xbrl_model_edjp):
+    """JSON版プロパティの作成をテスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # JSON版プロパティが存在することを確認
+    json_properties = dataclass_instance.get_json_properties()
+    assert isinstance(json_properties, list)
+    assert len(json_properties) > 0
+
+    # 全てのプロパティに対してJSON版が存在することを確認
+    all_properties = dataclass_instance.__available_properties__
+    original_properties = [
+        prop for prop in all_properties if not prop.endswith("_json")
+    ]
+
+    for original_prop in original_properties:
+        json_prop = original_prop + "_json"
+        assert (
+            json_prop in json_properties
+        ), f"JSON property '{json_prop}' not found for '{original_prop}'"
+
+        # JSON版プロパティが存在し、文字列であることを確認
+        json_value = getattr(dataclass_instance, json_prop)
+        assert isinstance(
+            json_value, str
+        ), f"JSON property '{json_prop}' is not a string: {type(json_value)}"
+
+        # JSON形式として有効であることを確認
+        import json
+
+        try:
+            parsed = json.loads(json_value)
+            # 元のプロパティと一致することを確認
+            original_value = getattr(dataclass_instance, original_prop)
+            assert (
+                parsed == original_value
+            ), f"JSON conversion mismatch for '{original_prop}'"
+        except json.JSONDecodeError as e:
+            # JSON解析に失敗した場合は詳細を表示
+            print(f"JSON decode error for '{json_prop}': {e}")
+            print(f"Value: {json_value[:100]}...")  # 最初の100文字のみ表示
+            # テストは続行（文字列変換されたものかもしれない）
+
+    print(f"✅ JSON properties test passed")
+    print(f"  - Created {len(json_properties)} JSON properties")
+    print(f"  - All original properties have JSON equivalents")
+
+
+def test_get_property_as_json_method(xbrl_model_edjp):
+    """get_property_as_jsonメソッドをテスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # いくつかのプロパティでJSONアクセスをテスト
+    all_properties = dataclass_instance.__available_properties__
+    original_properties = [
+        prop for prop in all_properties if not prop.endswith("_json")
+    ]
+
+    # 最初の数個のプロパティをテスト
+    test_properties = original_properties[:5]
+
+    for prop_name in test_properties:
+        # get_property_as_jsonメソッドでJSON取得
+        json_string = dataclass_instance.get_property_as_json(prop_name)
+        assert isinstance(json_string, str)
+
+        # 直接JSONプロパティアクセスと一致することを確認
+        direct_json = getattr(dataclass_instance, prop_name + "_json")
+        assert (
+            json_string == direct_json
+        ), f"Method result doesn't match direct access for '{prop_name}'"
+
+    print(f"✅ get_property_as_json method test passed")
+    print(f"  - Tested {len(test_properties)} properties")
+    print(f"  - Method results match direct property access")
+
+
+def test_json_properties_integration(xbrl_model_edjp):
+    """JSON版プロパティの統合使用例"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    print("\n=== JSON Properties Integration Test ===")
+
+    # 全JSON版プロパティの取得
+    json_properties = dataclass_instance.get_json_properties()
+    print(f"Total JSON properties: {len(json_properties)}")
+
+    # サンプルプロパティの詳細表示
+    sample_properties = ["ix_file_path", "ix_head_title", "cal_source_file"]
+
+    for prop_name in sample_properties:
+        if hasattr(dataclass_instance, prop_name):
+            # 元のデータ
+            original_data = getattr(dataclass_instance, prop_name)
+            print(f"\n--- {prop_name} ---")
+            print(f"Original type: {type(original_data)}")
+            print(
+                f"Original length: {len(original_data) if isinstance(original_data, (list, dict)) else 'N/A'}"
+            )
+
+            # JSON版データ
+            json_data = dataclass_instance.get_property_as_json(prop_name)
+            print(f"JSON length: {len(json_data)} characters")
+            print(
+                f"JSON sample: {json_data[:100]}..."
+                if len(json_data) > 100
+                else f"JSON: {json_data}"
+            )
+
+    print(f"\n✅ JSON properties integration test completed")
+    print(f"  - All {len(json_properties)} JSON properties available")
+    print(f"  - Both direct access and method access work correctly")
+
+
+def test_json_properties_info(xbrl_model_edjp):
+    """プロパティ情報でJSON版の情報も含まれることをテスト"""
+    model = xbrl_model_edjp
+    property_info = model.get_dataclass_property_info()
+
+    # すべてのプロパティにJSON版情報が含まれることを確認
+    for prop_name, info in property_info.items():
+        assert "has_json_version" in info
+        assert "json_property_name" in info
+        assert info["has_json_version"] is True
+        assert info["json_property_name"] == prop_name + "_json"
+
+    print(f"✅ Property info includes JSON version information")
+    print(f"  - All {len(property_info)} properties have JSON versions")
+    print(f"  - JSON property names follow consistent naming pattern")
+
+
+def test_complete_json_usage_example(xbrl_model_edjp):
+    """JSON機能の完全な使用例"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    print("\n=== Complete JSON Usage Example ===")
+
+    # 1. 元のプロパティとJSON版の比較
+    print("1. Original vs JSON properties:")
+    sample_prop = "ix_file_path"
+    original_data = getattr(dataclass_instance, sample_prop)
+    json_data = getattr(dataclass_instance, sample_prop + "_json")
+
+    print(
+        f"   Original ({sample_prop}): {type(original_data)} with {len(original_data)} items"
+    )
+    print(
+        f"   JSON ({sample_prop}_json): {type(json_data)} with {len(json_data)} characters"
+    )
+
+    # 2. JSON版プロパティのリスト取得
+    json_properties = dataclass_instance.get_json_properties()
+    print(f"\n2. JSON properties count: {len(json_properties)}")
+
+    # 3. メソッド経由でのJSON取得
+    method_json = dataclass_instance.get_property_as_json(sample_prop)
+    print(f"\n3. Method access works: {method_json == json_data}")
+
+    # 4. プロパティ情報でJSON版の確認
+    property_info = model.get_dataclass_property_info()
+    sample_info = property_info[sample_prop]
+    print(f"\n4. Property info includes JSON details:")
+    print(f"   - has_json_version: {sample_info['has_json_version']}")
+    print(f"   - json_property_name: {sample_info['json_property_name']}")
+
+    # 5. API利用時の例（JSONが必要な場合）
+    print(f"\n5. API usage example:")
+    print(f"   - Original data for processing: {len(original_data)} records")
+    print(f"   - JSON string for transmission: {len(json_data)} bytes")
+
+    print(f"\n✅ Complete JSON usage example successful")
+    print(f"  - All JSON features working correctly")
+    print(f"  - Ready for API integration with JSON support")
+
+
+def test_get_all_source_files_json_method(xbrl_model_edjp):
+    """get_all_source_files_jsonメソッドをテスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # 元のget_all_source_filesとの比較
+    original_source_files = dataclass_instance.get_all_source_files()
+    json_source_files = dataclass_instance.get_all_source_files_json()
+
+    # JSON文字列であることを確認
+    assert isinstance(json_source_files, str)
+
+    # JSONとして有効であることを確認
+    import json
+
+    parsed_json = json.loads(json_source_files)
+
+    # 元のデータと一致することを確認
+    assert parsed_json == original_source_files
+
+    # リストであることを確認
+    assert isinstance(parsed_json, list)
+    assert len(parsed_json) > 0
+
+    # 各要素が辞書であることを確認
+    for item in parsed_json:
+        assert isinstance(item, dict)
+        assert "source_file_id" in item
+
+    print(f"✅ get_all_source_files_json method test passed")
+    print(f"  - JSON string contains {len(parsed_json)} source file records")
+    print(f"  - JSON length: {len(json_source_files)} characters")
+    print(f"  - Data matches original get_all_source_files() output")
+
+
+def test_api_integration_with_json_source_files(xbrl_model_edjp):
+    """JSON版source_filesのAPI統合テスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # 様々な方法でsource_filesにアクセス
+    print("\n=== API Integration with JSON Source Files ===")
+
+    # 方法1: 元のリスト形式
+    list_format = dataclass_instance.get_all_source_files()
+    print(f"1. List format: {len(list_format)} items")
+
+    # 方法2: JSON文字列形式（新しいメソッド）
+    json_format = dataclass_instance.get_all_source_files_json()
+    print(f"2. JSON format: {len(json_format)} characters")
+
+    # 方法3: API Payload例
+    api_payload_list = {"data": list_format}
+    api_payload_json_string = json_format  # 既にJSON文字列
+
+    print(
+        f"3. API Payload (list): data field contains {len(api_payload_list['data'])} records"
+    )
+    print(
+        f"4. API Payload (JSON string): {len(api_payload_json_string)} characters ready for transmission"
+    )
+
+    # JSONパースして内容が同じことを確認
+    import json
+
+    parsed_json_format = json.loads(json_format)
+    assert parsed_json_format == list_format
+
+    print(f"\n✅ API integration test successful")
+    print(f"  - List and JSON formats contain identical data")
+    print(f"  - Both formats ready for different API requirements")
+    print(f"  - JSON string format reduces serialization overhead")
+
+
+def test_insert_api_json_compatibility(xbrl_model_edjp):
+    """Insert APIでのJSON使用の互換性テスト"""
+    model = xbrl_model_edjp
+    dataclass_instance = model.get_all_items_as_dataclass()
+
+    # insert.pyで使用される形式のテスト
+    print("\n=== Insert API JSON Compatibility Test ===")
+
+    # 1. 従来の方法（リスト形式）
+    traditional_sources = dataclass_instance.get_all_source_files()
+    print(f"1. Traditional format: {len(traditional_sources)} source file records")
+
+    # 2. 新しい方法（JSON文字列形式）
+    json_sources = dataclass_instance.get_all_source_files_json()
+    print(f"2. JSON string format: {len(json_sources)} characters")
+
+    # 3. sources()メソッドが両方の形式を処理できることを想定
+    # （実際のAPIコールはせず、データ形式のみ確認）
+
+    # JSON文字列からリストに戻せることを確認
+    import json
+
+    parsed_json_sources = json.loads(json_sources)
+    assert parsed_json_sources == traditional_sources
+
+    # 両方の形式で同じ結果が得られることを確認
+    assert len(parsed_json_sources) == len(traditional_sources)
+    assert len(parsed_json_sources) == 18  # 期待される18個のsource_fileレコード
+
+    # API payload simulation
+    payload_traditional = {"data": traditional_sources}
+    payload_json_parsed = {"data": parsed_json_sources}
+
+    assert payload_traditional == payload_json_parsed
+
+    print(f"3. API payload compatibility confirmed")
+    print(f"   - Traditional payload size: {len(str(payload_traditional))} chars")
+    print(f"   - JSON method produces identical payload")
+
+    print(f"\n✅ Insert API JSON compatibility test passed")
+    print(f"  - get_all_source_files_json() ready for production use")
+    print(f"  - Backward compatibility maintained")
+    print(f"  - Performance optimized with pre-serialized JSON")

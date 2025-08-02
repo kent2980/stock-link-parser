@@ -29,8 +29,11 @@ if __name__ == "__main__":
     api_base_url = sys.argv[2]
     if len(sys.argv) >= 4:
         select_date = sys.argv[3]
+        target_date = datetime.strptime(select_date, "%Y-%m-%d")
     else:
-        select_date = datetime.now().strftime("%Y-%m-%d")
+        # 引数が指定されていない場合は今日のみ処理
+        target_date = datetime.now()
+        select_date = target_date.strftime("%Y-%m-%d")
 
     print("引数を取得しました:")
     print(f"outputPath: {outputPath}")
@@ -43,31 +46,72 @@ if __name__ == "__main__":
         f.write("")
 
     try:
-        # 日付を遡るループ
-        today = datetime.strptime(select_date, "%Y-%m-%d")
-        yesterday = today - timedelta(days=1)
+        # 今日から指定された日付まで遡って処理
+        today = datetime.now()
 
-        while True:
+        # 引数で日付が指定されていない場合は今日のみ処理
+        if len(sys.argv) < 4:
+            print(f"今日のデータのみ処理します: {today.strftime('%Y-%m-%d')}")
+            insert = Insert(outputPath, api_base_url)
+            targetDir = Path.joinpath(
+                Path(target),
+                Path(today.strftime("%Y年")),
+                Path(today.strftime("%m月")),
+                Path(today.strftime("%Y%m%d")),
+            )
+
             try:
-                print(f"処理中の日付: {today.strftime('%Y-%m-%d')}")
-                insert = Insert(outputPath, api_base_url)
-                targetDir = Path.joinpath(
-                    Path(target),
-                    Path(today.strftime("%Y年")),
-                    Path(today.strftime("%m月")),
-                    Path(today.strftime("%Y%m%d")),
-                )
+                if targetDir.exists():
+                    insert.insert_xbrl_dir(targetDir.as_posix())
+                    print(f"処理完了: {today.strftime('%Y-%m-%d')}")
+                else:
+                    print(f"ディレクトリが存在しません: {targetDir}")
+            except ApiInsertionException as e:
+                print(f"API挿入エラー: {e}")
+            except Exception as e:
+                import traceback
 
-                # 昨日までのデータを取得
-                if today < yesterday:
-                    print("指定された日付よりも前の日付です。処理を終了します。")
-                    break
+                print(f"処理エラー: {e}")
+                print(f"エラーの詳細:")
+                print(traceback.format_exc())
+        else:
+            # 指定された日付まで遡って処理
+            print(
+                f"今日から指定日付まで処理します: {today.strftime('%Y-%m-%d')} → {target_date.strftime('%Y-%m-%d')}"
+            )
 
-                insert.insert_xbrl_dir(targetDir.as_posix())
-                today -= timedelta(days=1)
-            except ApiInsertionException:
-                today -= timedelta(days=1)
-                continue
+            current_date = today
+            while current_date >= target_date:
+                try:
+                    print(f"処理中の日付: {current_date.strftime('%Y-%m-%d')}")
+                    insert = Insert(outputPath, api_base_url)
+                    targetDir = Path.joinpath(
+                        Path(target),
+                        Path(current_date.strftime("%Y年")),
+                        Path(current_date.strftime("%m月")),
+                        Path(current_date.strftime("%Y%m%d")),
+                    )
+
+                    if targetDir.exists():
+                        insert.insert_xbrl_dir(targetDir.as_posix())
+                        print(f"処理完了: {current_date.strftime('%Y-%m-%d')}")
+                    else:
+                        print(f"ディレクトリが存在しません（スキップ）: {targetDir}")
+
+                except ApiInsertionException as e:
+                    print(
+                        f"API挿入エラー（スキップ）: {current_date.strftime('%Y-%m-%d')} - {e}"
+                    )
+                except Exception as e:
+                    import traceback
+
+                    print(
+                        f"処理エラー（スキップ）: {current_date.strftime('%Y-%m-%d')} - {e}"
+                    )
+                    print(f"エラーの詳細:")
+                    print(traceback.format_exc())
+
+                current_date -= timedelta(days=1)
 
     finally:
         # 処理が終了したらロックファイルを削除

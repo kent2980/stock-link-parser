@@ -77,12 +77,63 @@ class XBRLDataProtocol(Protocol):
     sc_linkbase_ref: List[Dict[str, Any]]  # sc_linkbase_ref
     sc_source_file: List[Dict[str, Any]]  # sc_source_file
 
+    # JSON文字列版のプロパティ（元のプロパティ名に_jsonサフィックス）
+    cal_link_arcs_json: str  # cal_link_arcs のJSON文字列版
+    cal_link_locs_json: str  # cal_link_locs のJSON文字列版
+    cal_link_roles_json: str  # cal_link_roles のJSON文字列版
+    cal_source_file_json: str  # cal_source_file のJSON文字列版
+    def_link_arcs_json: str  # def_link_arcs のJSON文字列版
+    def_link_locs_json: str  # def_link_locs のJSON文字列版
+    def_link_roles_json: str  # def_link_roles のJSON文字列版
+    def_source_file_json: str  # def_source_file のJSON文字列版
+    href_master_json: str  # href_master のJSON文字列版
+    ix_context_json: str  # ix_context のJSON文字列版
+    ix_file_path_json: str  # ix_file_path のJSON文字列版
+    ix_head_title_json: str  # ix_head_title のJSON文字列版
+    ix_non_fraction_json: str  # ix_non_fraction のJSON文字列版
+    ix_non_numeric_json: str  # ix_non_numeric のJSON文字列版
+    ix_source_file_json: str  # ix_source_file のJSON文字列版
+    lab_link_arcs_json: str  # lab_link_arcs のJSON文字列版
+    lab_link_locs_json: str  # lab_link_locs のJSON文字列版
+    lab_link_values_json: str  # lab_link_values のJSON文字列版
+    lab_source_file_json: str  # lab_source_file のJSON文字列版
+    pre_link_arcs_json: str  # pre_link_arcs のJSON文字列版
+    pre_link_locs_json: str  # pre_link_locs のJSON文字列版
+    pre_link_roles_json: str  # pre_link_roles のJSON文字列版
+    pre_source_file_json: str  # pre_source_file のJSON文字列版
+    qualitative_info_json: str  # qualitative_info のJSON文字列版
+    qualitative_source_file_json: str  # qualitative_source_file のJSON文字列版
+    sc_elements_json: str  # sc_elements のJSON文字列版
+    sc_import_json: str  # sc_import のJSON文字列版
+    sc_linkbase_ref_json: str  # sc_linkbase_ref のJSON文字列版
+    sc_source_file_json: str  # sc_source_file のJSON文字列版
+
     # メタデータ属性
     __property_hints__: Dict[str, type]
     __available_properties__: List[str]
 
     def __getattr__(self, name: str) -> Any:
         """動的プロパティアクセス用"""
+        ...
+
+    def get_source_file_properties(self) -> List[str]:
+        """source_fileで終わるプロパティ名のリストを返す"""
+        ...
+
+    def get_all_source_files(self) -> List[Dict[str, Any]]:
+        """全てのsource_fileプロパティの値を平坦なリストで返す"""
+        ...
+
+    def get_all_source_files_json(self) -> str:
+        """全てのsource_fileプロパティの値を平坦なリストのJSON文字列で返す"""
+        ...
+
+    def get_json_properties(self) -> List[str]:
+        """JSON版プロパティ名のリストを返す"""
+        ...
+
+    def get_property_as_json(self, property_name: str) -> str:
+        """指定されたプロパティのJSON文字列版を返す"""
         ...
 
 
@@ -368,6 +419,41 @@ class XBRLModel(BaseXbrlModel):
 
         return keys
 
+    def get_source_file_items(self) -> List[ItemDict]:
+        """source_fileで終わるキーを持つアイテムを全て集約して返します
+
+        Returns:
+            source_fileで終わるキーを持つItemDictのリスト
+        """
+        source_file_items: List[ItemDict] = []
+
+        for item in self.all_items:
+            if item.key.endswith("source_file"):
+                source_file_items.append(item)
+
+        return source_file_items
+
+    def get_aggregated_source_files(self) -> Dict[str, List[Dict[str, Any]]]:
+        """source_fileで終わるキーを持つアイテムを辞書形式で集約して返します
+
+        Returns:
+            キー名をキーとし、そのアイテムのリストを値とする辞書
+        """
+        source_file_items = self.get_source_file_items()
+        aggregated_dict: Dict[str, List[Dict[str, Any]]] = {}
+
+        for item in source_file_items:
+            key = item.key
+            # itemがリストの場合はそのまま、辞書の場合はリストに変換
+            if isinstance(item.item, list):
+                aggregated_dict[key] = item.item
+            elif isinstance(item.item, dict):
+                aggregated_dict[key] = [item.item]
+            else:
+                aggregated_dict[key] = [item.item]
+
+        return aggregated_dict
+
     def get_all_items_as_dataclass(self) -> XBRLDataProtocol:
         """ItemDict.keyをプロパティとした動的データクラスを作成し、プロパティの値をItemDict.itemにした
         データクラスのインスタンスを返します
@@ -410,9 +496,19 @@ class XBRLModel(BaseXbrlModel):
                         field(default_factory=self._create_factory(item.item)),
                     )
                 )
+                # JSON版のプロパティも追加
+                json_key = safe_key + "_json"
+                json_value = self._convert_to_json(item.item)
+                property_hints[json_key] = str
+                field_definitions.append((json_key, str, json_value))
             else:
                 # イミュータブルオブジェクトはそのまま使用
                 field_definitions.append((safe_key, item_type, item.item))
+                # JSON版のプロパティも追加
+                json_key = safe_key + "_json"
+                json_value = self._convert_to_json(item.item)
+                property_hints[json_key] = str
+                field_definitions.append((json_key, str, json_value))
 
         # 動的データクラスを作成
         XBRLDataClass = make_dataclass(
@@ -427,6 +523,21 @@ class XBRLModel(BaseXbrlModel):
                 "__annotations__": {
                     item[0]: item[1] for item in field_definitions
                 },  # 型注釈を明示的に設定
+                "get_source_file_properties": self._create_get_source_file_properties_method(
+                    field_definitions
+                ),
+                "get_all_source_files": self._create_get_all_source_files_method(
+                    field_definitions
+                ),
+                "get_all_source_files_json": self._create_get_all_source_files_json_method(
+                    field_definitions
+                ),
+                "get_json_properties": self._create_get_json_properties_method(
+                    field_definitions
+                ),
+                "get_property_as_json": self._create_get_property_as_json_method(
+                    field_definitions
+                ),
             },
         )
 
@@ -468,6 +579,8 @@ class XBRLModel(BaseXbrlModel):
             - original_key: 元のItemDict.key
             - type: 値の型
             - value_sample: 値のサンプル（最初の数要素）
+            - has_json_version: JSON版プロパティが存在するか
+            - json_property_name: JSON版プロパティ名
         """
         all_items = self.get_all_items()
         property_info = {}
@@ -480,6 +593,8 @@ class XBRLModel(BaseXbrlModel):
             if isinstance(item.item, list) and len(item.item) > 3:
                 value_sample = item.item[:3] + ["...（他の要素も存在）"]
 
+            json_property_name = safe_key + "_json"
+
             property_info[safe_key] = {
                 "original_key": item.key,
                 "type": type(item.item).__name__,
@@ -487,6 +602,8 @@ class XBRLModel(BaseXbrlModel):
                 "length": (
                     len(item.item) if isinstance(item.item, (list, dict, str)) else None
                 ),
+                "has_json_version": True,
+                "json_property_name": json_property_name,
             }
 
         return property_info
@@ -505,6 +622,98 @@ class XBRLModel(BaseXbrlModel):
                 return value
 
         return factory
+
+    def _convert_to_json(self, value: Any) -> str:
+        """データをJSON文字列に変換する"""
+        import json
+
+        try:
+            return json.dumps(value, ensure_ascii=False, default=str)
+        except (TypeError, ValueError) as e:
+            # JSON変換できない場合は文字列として返す
+            return str(value)
+
+    def _create_get_source_file_properties_method(self, field_definitions):
+        """get_source_file_propertiesメソッドを生成する"""
+
+        def get_source_file_properties(self_instance):
+            return [
+                name for name, _, _ in field_definitions if name.endswith("source_file")
+            ]
+
+        return get_source_file_properties
+
+    def _create_get_all_source_files_method(self, field_definitions):
+        """get_all_source_filesメソッドを生成する"""
+
+        def get_all_source_files(self_instance):
+            source_files = []
+            for name, _, _ in field_definitions:
+                if name.endswith("source_file"):
+                    property_value = getattr(self_instance, name)
+                    # プロパティの値がリストの場合はそのまま追加、そうでなければリストにしてから追加
+                    if isinstance(property_value, list):
+                        source_files.extend(property_value)
+                    else:
+                        source_files.append(property_value)
+            return source_files
+
+        return get_all_source_files
+
+    def _create_get_all_source_files_json_method(self, field_definitions):
+        """get_all_source_files_jsonメソッドを生成する"""
+
+        def get_all_source_files_json(self_instance):
+            import json
+
+            source_files = []
+            for name, _, _ in field_definitions:
+                if name.endswith("source_file"):
+                    property_value = getattr(self_instance, name)
+                    # プロパティの値がリストの場合はそのまま追加、そうでなければリストにしてから追加
+                    if isinstance(property_value, list):
+                        source_files.extend(property_value)
+                    else:
+                        source_files.append(property_value)
+
+            # JSON文字列に変換
+            try:
+                return json.dumps(source_files, ensure_ascii=False, default=str)
+            except (TypeError, ValueError) as e:
+                # JSON変換できない場合は空リストのJSON文字列を返す
+                return "[]"
+
+        return get_all_source_files_json
+
+    def _create_get_json_properties_method(self, field_definitions):
+        """get_json_propertiesメソッドを生成する"""
+
+        def get_json_properties(self_instance):
+            return [name for name, _, _ in field_definitions if name.endswith("_json")]
+
+        return get_json_properties
+
+    def _create_get_property_as_json_method(self, field_definitions):
+        """get_property_as_jsonメソッドを生成する"""
+
+        def get_property_as_json(self_instance, property_name: str):
+            json_property_name = property_name + "_json"
+            if hasattr(self_instance, json_property_name):
+                return getattr(self_instance, json_property_name)
+            else:
+                # JSON版が存在しない場合は元のプロパティをJSON変換
+                if hasattr(self_instance, property_name):
+                    import json
+
+                    value = getattr(self_instance, property_name)
+                    try:
+                        return json.dumps(value, ensure_ascii=False, default=str)
+                    except (TypeError, ValueError):
+                        return str(value)
+                else:
+                    raise AttributeError(f"Property '{property_name}' not found")
+
+        return get_property_as_json
 
     def _make_safe_identifier(self, name: str) -> str:
         """文字列をPythonの有効な識別子に変換する
