@@ -1,0 +1,22 @@
+# Cursor Rules for kintone PL Dashboard Project
+
+## Language Settings
+- All commit messages and code comments should be written in Japanese
+- Commit message generation should output in Japanese
+- Code documentation and comments should be in Japanese
+
+## Commit Message Format
+- Use Japanese for all commit messages
+- Follow conventional commit format when possible, but in Japanese
+- Example: "feat: 新機能を追加" instead of "feat: Add new feature"
+
+## Code Style
+- Write code comments in Japanese
+- Write JSDoc comments in Japanese
+- Variable and function names can be in English, but comments should be in Japanese
+
+## AI Assistant Instructions
+- When generating commit messages, always use Japanese
+- When explaining code, use Japanese
+- When suggesting changes, provide explanations in Japanese
+

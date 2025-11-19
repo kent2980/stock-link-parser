@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -16,7 +16,7 @@ class LabelValue(BaseTag):
     label: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_label and self.xlink_role:
             self.item_key = str(
@@ -36,7 +36,7 @@ class LabelLoc(BaseTag):
     xlink_href: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_label and self.xlink_schema:
             self.item_key = str(
@@ -56,7 +56,7 @@ class LabelArc(BaseTag):
     xlink_arcrole: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_from and self.xlink_to:
             self.item_key = str(
@@ -75,7 +75,7 @@ class LabelRoleRefs(BaseTag):
     xlink_schema: Optional[str] = Field(default=None)
     xlink_href: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.role_uri and self.xlink_schema:
             self.item_key = str(

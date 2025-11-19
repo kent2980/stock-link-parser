@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     # 単一ファイルでテスト
     test_file = (
-        "/Volumes/SharedFolder/tdnet/2025年/07月/20250731/081220250617592197.zip"
+        "/Volumes/SharedFolder/tdnet/2025年/07月/20250709/081220250704508543.zip"
     )
 
     if os.path.exists(test_file):

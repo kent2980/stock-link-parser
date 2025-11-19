@@ -88,7 +88,7 @@ class IxbrlParser(BaseXBRLParser):
             role = {
                 "type": "summary",
                 "jp_label": "短信サマリー",
-                "en_label": "FinancialReportSummary",
+                "en_label": "DocumentEntityInformation",
             }
         else:
             try:

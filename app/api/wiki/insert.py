@@ -1,4 +1,5 @@
 from time import sleep
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -25,16 +26,16 @@ class Insert:
         output_path: 出力先ディレクトリ
     """
 
-    def __init__(self, api_base_url: str = None):
+    def __init__(self, api_base_url: Optional[str] = None) -> None:
         self.url = api_base_url + "/api/v1"
         self.data = self.jpx_stock_info()
 
-    def jpx_stock_info(self):
+    def jpx_stock_info(self) -> List[Dict[str, Any]]:
         url = self.url + ep.GET_JPX_STOCK_INFO_LIST
         response = requests.get(url)
         return response.json().get("data")
 
-    def load_wiki(self):
+    def load_wiki(self) -> None:
         wiki = WikiReader()
         i = 0
         for item in self.data:
@@ -94,11 +95,11 @@ class Insert:
                 sleep(1)
 
     @property
-    def data(self):
+    def data(self) -> List[Dict[str, Any]]:
         return self._data
 
     @data.setter
-    def data(self, value):
+    def data(self, value: List[Dict[str, Any]]) -> None:
         self._data = value
 
 

@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -10,11 +10,11 @@ class BaseTag(BaseModel):
     item_key: str = Field(default=None, min_length=36, max_length=36)  # uuidを設定
 
     @classmethod
-    def keys(cls):
+    def keys(cls) -> List[str]:
         return list(cls().__dict__.keys())
 
     @classmethod
-    def is_valid(cls, data: dict):
+    def is_valid(cls, data: Dict[str, Any]) -> bool:
         # インスタンス化
         try:
             cls(**data)
@@ -40,7 +40,7 @@ class SourceFile(BaseTag):
     def __str__(self) -> str:
         return f"{self.name},{self.type},{self.head_item_key},{self.url}"
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         key = None
         if self.head_item_key:
@@ -62,7 +62,7 @@ class FilePath(BaseTag):
     head_item_key: Optional[str] = Field(default=None, max_length=36, min_length=36)
     path: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.head_item_key and self.path:
             self.item_key = str(

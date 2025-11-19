@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -16,7 +16,7 @@ class LinkSchemaImport(BaseTag):
     name_space: Optional[str] = Field(default=None)
     document_type: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.schema_location and self.name_space:
             self.item_key = str(
@@ -39,7 +39,7 @@ class LinkBaseRef(BaseTag):
     xlink_arcrole: Optional[str] = Field(default=None)
     document_type: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_href and self.xlink_role:
             self.item_key = str(
@@ -66,7 +66,7 @@ class LinkElement(BaseTag):
     abstract: Optional[str] = Field(default=None)
     document_type: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.name and self.type:
             self.item_key = str(
@@ -88,7 +88,7 @@ class LinkRole(BaseTag):
     xlink_href: Optional[str] = Field(default=None)
     role_uri: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.role_uri and self.xlink_schema:
             self.item_key = str(
@@ -112,7 +112,7 @@ class LinkLoc(BaseTag):
     xlink_label: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_label and self.xlink_schema:
             self.item_key = str(
@@ -138,7 +138,7 @@ class LinkArc(BaseTag):
     xlink_weight: Optional[float] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_from and self.xlink_to:
             self.item_key = str(
@@ -159,7 +159,7 @@ class LinkBase(BaseTag):
     xmlns_xsi: Optional[str] = Field(default=None)
     xmlns_link: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xmlns_xlink and self.xmlns_xsi:
             self.item_key = str(
@@ -179,7 +179,7 @@ class LinkTag(BaseTag):
     xlink_type: Optional[str] = Field(default=None)
     xlink_role: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_type and self.xlink_role:
             self.item_key = str(
@@ -203,7 +203,7 @@ class LinkHrefMaster(BaseTag):
     is_def: Optional[bool] = Field(default=False)
     is_pre: Optional[bool] = Field(default=False)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_href and self.attr_value:
             self.item_key = str(

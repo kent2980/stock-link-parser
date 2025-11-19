@@ -3,6 +3,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List
 
 import requests
 from tqdm import tqdm
@@ -60,151 +61,205 @@ class Insert:
             f"Insert instance initialized. Output path: {output_path}, API URL: {api_base_url}"
         )
 
-    def ix_head_titles(self, data):
+    def ix_head_titles(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_HEAD_TITLES
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def ix_non_numerics(self, data):
+    def ix_non_numerics(self, data: List[Dict[str, Any]]) -> requests.Response:
+        # dataのxbrl_typeキーからfrを抽出
+        fr_data = [item for item in data if item.get("xbrl_type") == "fr"]
         url = self.url + ep.POST_NON_NUMERICS
-        response = requests.post(url, json={"data": data})
+        response = requests.post(url, json={"data": fr_data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def ix_non_fractions(self, data):
+    def ix_non_numeric_summary(self, data: List[Dict[str, Any]]) -> requests.Response:
+        # dataのxbrl_typeキーからsmを抽出
+        sm_data = [item for item in data if item.get("xbrl_type") == "sm"]
+        url = self.url + ep.POST_NON_NUMERIC_SUMMARY
+        response = requests.post(url, json={"data": sm_data})
+        # レスポンスエラーをログに記録
+        self.__response_error_logging(response)
+        return response
+
+    def ix_non_fractions(self, data: List[Dict[str, Any]]) -> requests.Response:
+        # dataのxbrl_typeキーからfrを抽出
+        fr_data = [item for item in data if item.get("xbrl_type") == "fr"]
         url = self.url + ep.POST_NON_FRACTIONS
-        response = requests.post(url, json={"data": data})
+        response = requests.post(url, json={"data": fr_data})
+        # レスポンスエラーをログに記録
+        self.__response_error_logging(response)
+        if response.status_code == 200:
+            print(response.json())
+            if response.json().get("failed") > 0:
+                self.logger.error(
+                    f"ix_non_fractionsの挿入に失敗しました: {response.json().get('failed')}件(成功: {response.json().get('created')})"
+                )
+        return response
+
+    def ix_non_fractions_summary(self, data: List[Dict[str, Any]]) -> requests.Response:
+        # dataのxbrl_typeキーからsmを抽出
+        sm_data = [item for item in data if item.get("xbrl_type") == "sm"]
+        url = self.url + ep.POST_NON_FRACTIONS_SUMMARY
+        response = requests.post(url, json={"data": sm_data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def label_locs(self, data):
+    def label_locs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_LABEL_LOCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def label_arcs(self, data):
+    def label_arcs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_LABEL_ARCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def label_values(self, data):
+    def label_values(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_LABEL_VALUES
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def cal_locs(self, data):
+    def cal_locs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_CAL_LOCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def cal_arcs(self, data):
+    def cal_arcs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_CAL_ARCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def pre_locs(self, data):
+    def pre_locs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_PRE_LOCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def pre_arcs(self, data):
+    def pre_arcs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_PRE_ARCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def def_locs(self, data):
+    def def_locs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_DEF_LOCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def def_arcs(self, data):
+    def def_arcs(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_DEF_ARCS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def loc_href_master(self, data):
+    def loc_href_master(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_LOC_HREF_MASTER
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def sources(self, data):
+    def sources(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_SOURCES
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def schemas(self, data):
+    def schemas(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_SCHEMAS
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def file_path(self, data):
+    def file_path(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_FILE_PATH
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def qualitative(self, data):
+    def qualitative(self, data: List[Dict[str, Any]]) -> requests.Response:
         url = self.url + ep.POST_QUALITATIVE
         response = requests.post(url, json={"data": data})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def set_head_active(self, head_item_key):
+    def set_head_active(self, head_item_key: str) -> requests.Response:
         url = self.url + ep.UPDATE_HEAD_ACTIVE
         response = requests.patch(url, params={"head_item_key": head_item_key})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
-    def is_active_head(self, head_item_key):
+    def is_active_head(self, head_item_key: str) -> Dict[str, Any]:
         url = self.url + ep.IS_ACTIVE_HEAD
         response = requests.get(url, params={"head_item_key": head_item_key})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response.json()
 
-    def update_head_generate(self, head_item_key):
+    def update_head_generate(self, head_item_key: str) -> requests.Response:
         url = self.url + ep.UPDATE_HEAD_GENERATE
         response = requests.patch(url, params={"head_item_key": head_item_key})
         # レスポンスエラーをログに記録
         self.__response_error_logging(response)
         return response
 
+    def rollback_data(self, head_item_key: str) -> bool:
+        """
+        データの挿入に失敗した場合のロールバック処理
+        head_item_keyに関連するすべてのデータを削除する
+        """
+        try:
+            # ロールバック用のエンドポイントを呼び出し
+            rollback_url = self.url + f"/xbrl/rollback/{head_item_key}"
+            response = requests.delete(rollback_url)
+
+            if response.status_code == 200:
+                self.logger.info(f"ロールバック成功: {head_item_key}")
+                return True
+            else:
+                self.logger.error(
+                    f"ロールバック失敗: {head_item_key}, Status: {response.status_code}"
+                )
+                return False
+
+        except Exception as e:
+            self.logger.error(
+                f"ロールバック中にエラーが発生: {head_item_key}, Error: {e}"
+            )
+            return False
+
     # レスポンスエラーをログに記録するためのメソッド
-    def __response_error_logging(self, response):
+    def __response_error_logging(self, response: requests.Response) -> None:
         if response.status_code != 200:
             error_msg = f"API Error - Status: {response.status_code}, Response: {response.text[:200]}"
             self.logger.error(error_msg)
+            self.logger.error(f"Request URL: {response.request.url}")
             self.logger.error(f"Request headers: {dict(response.request.headers)}")
 
             try:
@@ -212,13 +267,13 @@ class Insert:
                     error_data = response.json()
                     self.logger.error(f"Error data: {error_data}")
                 else:
-                    error_empty = f"エラーが発生しました。(locHrefMaster):空のレスポンス - ステータス{response.status_code}"
+                    error_empty = f"空のレスポンス - ステータス{response.status_code}"
                     self.logger.error(error_empty)
             except requests.exceptions.JSONDecodeError:
-                error_json = f"エラーが発生しました。(locHrefMaster):JSONでないレスポンス - ステータス{response.status_code}, 内容: {response.text[:100]}"
+                error_json = f"JSONでないレスポンス - ステータス{response.status_code}, 内容: {response.text[:100]}"
                 self.logger.error(error_json)
 
-    def insert_xbrl_zip(self, zip_path):
+    def insert_xbrl_zip(self, zip_path: str) -> None:
         """
         <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
         <p>このメソッドは単体のXBRLファイルを解析する際に使用します。</p>
@@ -227,22 +282,37 @@ class Insert:
         """
         # head_item_keyを生成
         head_item_key = Utils.string_to_uuid(Path(zip_path).name)
-        # XBRLModelのインスタンスを作成
-        model = XBRLModel(zip_path, self.output_path)
-        # XBRLファイルから全てのアイテムを取得
-        items = model.get_all_items_as_dataclass()
 
-        # APIにデータを挿入
-        is_success = self.__insert_api_push(items, head_item_key)
-        if is_success:
-            # サマリーの挿入
-            if not self.generate_summary(head_item_key):
-                print(f"サマリーの生成に失敗しました: {model}")
-        else:
-            print(model)
-            print("API挿入でエラーが発生しました。")
+        try:
+            # XBRLModelのインスタンスを作成
+            model = XBRLModel(zip_path, self.output_path)
+            # XBRLファイルから全てのアイテムを取得
+            items = model.get_all_items_as_dataclass()
 
-    def insert_xbrl_dir(self, dir_path):
+            # APIにデータを挿入
+            is_success = self.__insert_api_push(items, head_item_key)
+
+            if is_success:
+                # サマリーの挿入
+                if not self.generate_summary(head_item_key):
+                    self.logger.warning(f"サマリーの生成に失敗しました: {model}")
+                    print(f"サマリーの生成に失敗しました: {model}")
+                else:
+                    self.logger.info(f"処理完了 (サマリー含む): {model}")
+                    print(f"Success: {model}")
+            else:
+                error_msg = f"API挿入が失敗し、ロールバックが実行されました: {model}"
+                self.logger.error(error_msg)
+                print(error_msg)
+
+        except Exception as e:
+            error_msg = f"XBRLファイル処理中にエラーが発生: {zip_path}, Error: {e}"
+            self.logger.error(error_msg)
+            print(error_msg)
+            # エラーが発生した場合もロールバックを実行
+            self.rollback_data(head_item_key)
+
+    def insert_xbrl_dir(self, dir_path: str) -> None:
         """
         <p>XBRLファイルを解析し、APIにデータを挿入します。</p>
         <p>このメソッドは複数のXBRLファイルを解析する際に使用します。</p>
@@ -315,29 +385,70 @@ class Insert:
 
         # API呼び出しの成功を追跡するフラグ
         all_success = True
+        successful_operations = []  # 成功した操作を記録
 
         # 他テーブルから外部参照されているテーブルから優先的に処理
         try:
-            self.file_path(data_instance.ix_file_path)
-            self.ix_head_titles(data_instance.ix_head_title)
-            self.sources(data_instance.get_all_source_files())
-            self.schemas(data_instance.sc_linkbase_ref)
-            self.loc_href_master(data_instance.href_master)
+            # 各APIエンドポイントの呼び出しとエラーチェック
+            operations = [
+                ("file_path", lambda: self.file_path(data_instance.ix_file_path)),
+                (
+                    "ix_head_titles",
+                    lambda: self.ix_head_titles(data_instance.ix_head_title),
+                ),
+                ("sources", lambda: self.sources(data_instance.get_all_source_files())),
+                ("schemas", lambda: self.schemas(data_instance.sc_linkbase_ref)),
+                (
+                    "loc_href_master",
+                    lambda: self.loc_href_master(data_instance.href_master),
+                ),
+            ]
 
-            # lab_link_locsプロパティの存在を確認してからアクセス
+            # lab_link_locsプロパティの存在を確認してからオペレーションに追加
             if hasattr(data_instance, "lab_link_locs"):
-                self.label_locs(data_instance.lab_link_locs)
+                operations.append(
+                    ("label_locs", lambda: self.label_locs(data_instance.lab_link_locs))
+                )
             else:
                 self.logger.error(
                     f"lab_link_locsプロパティが存在しません。利用可能なプロパティ: {[prop for prop in dir(data_instance) if not prop.startswith('_')]}"
                 )
                 all_success = False
 
-            self.label_arcs(data_instance.lab_link_arcs)
-            self.label_values(data_instance.lab_link_values)
-            self.cal_locs(data_instance.cal_link_locs)
-            self.pre_locs(data_instance.pre_link_locs)
-            self.def_locs(data_instance.def_link_locs)
+            operations.extend(
+                [
+                    (
+                        "label_arcs",
+                        lambda: self.label_arcs(data_instance.lab_link_arcs),
+                    ),
+                    (
+                        "label_values",
+                        lambda: self.label_values(data_instance.lab_link_values),
+                    ),
+                    ("cal_locs", lambda: self.cal_locs(data_instance.cal_link_locs)),
+                    ("pre_locs", lambda: self.pre_locs(data_instance.pre_link_locs)),
+                    ("def_locs", lambda: self.def_locs(data_instance.def_link_locs)),
+                ]
+            )
+
+            # 優先的処理の実行
+            for operation_name, operation_func in operations:
+                try:
+                    response = operation_func()
+                    if response.status_code == 200:
+                        successful_operations.append(operation_name)
+                    else:
+                        error_msg = f"API呼び出し失敗: {operation_name}, Status: {response.status_code}"
+                        self.logger.error(error_msg)
+                        print(error_msg)
+                        all_success = False
+                        break  # 1つでも失敗したら停止
+                except Exception as e:
+                    error_msg = f"API呼び出し例外: {operation_name}, Error: {e}"
+                    self.logger.error(error_msg)
+                    print(error_msg)
+                    all_success = False
+                    break  # 1つでも失敗したら停止
 
         except AttributeError as attr_err:
             error_msg = f"AttributeError in API push: {attr_err}"
@@ -345,17 +456,28 @@ class Insert:
             print(error_msg)
             all_success = False
 
+        # 優先的処理で失敗があった場合はロールバック
+        if not all_success:
+            self.logger.error(
+                f"優先的処理で失敗が発生。ロールバックを実行: {head_item_key}"
+            )
+            self.rollback_data(head_item_key)
+            return False
+
         # 並列処理用のAPIエンドポイントリスト
         parallel_apis = [
             ("def_arcs", data_instance.def_link_arcs),
             ("cal_arcs", data_instance.cal_link_arcs),
             ("pre_arcs", data_instance.pre_link_arcs),
             ("ix_non_numerics", data_instance.ix_non_numeric),
+            ("ix_non_numeric_summary", data_instance.ix_non_numeric_summary),
             ("ix_non_fractions", data_instance.ix_non_fraction),
+            ("ix_non_fractions_summary", data_instance.ix_non_fractions_summary),
             ("qualitative", data_instance.qualitative_info),
         ]
 
         # 並列処理
+        parallel_success = True
         with ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(getattr(self, api_name), data): api_name
@@ -366,32 +488,62 @@ class Insert:
                 api_name = futures[future]
                 try:
                     response = future.result()  # 実行結果を取得
-                    if response.status_code != 200:
-                        print(
-                            f"API呼び出しが失敗しました ({api_name}): ステータスコード {response.status_code}"
-                        )
-                        all_success = False
+                    if response.status_code == 200:
+                        successful_operations.append(api_name)
                     else:
-                        print(f"Successfully processed {api_name}")
+                        error_msg = (
+                            f"並列処理失敗: {api_name}, Status: {response.status_code}"
+                        )
+                        self.logger.error(error_msg)
+                        print(error_msg)
+                        parallel_success = False
                 except Exception as e:
-                    print(f"Error processing {api_name}: {e}")
-                    all_success = False
+                    error_msg = f"並列処理例外: {api_name}, Error: {e}"
+                    self.logger.error(error_msg)
+                    print(error_msg)
+                    parallel_success = False
+
+        # 並列処理で失敗があった場合はロールバック
+        if not parallel_success:
+            self.logger.error(
+                f"並列処理で失敗が発生。ロールバックを実行: {head_item_key}"
+            )
+            self.rollback_data(head_item_key)
+            return False
 
         # 最後に送信するAPIエンドポイント
-        final_responses = []
-        final_responses.append(self.set_head_active(head_item_key))
-        final_responses.append(self.update_head_generate(head_item_key))
+        final_operations = [
+            ("set_head_active", lambda: self.set_head_active(head_item_key)),
+            ("update_head_generate", lambda: self.update_head_generate(head_item_key)),
+        ]
 
-        # 最終処理のレスポンスをチェック
-        for response in final_responses:
-            if response.status_code != 200:
-                print(
-                    f"最終API呼び出しが失敗しました。ステータスコード: {response.status_code}"
-                )
-                all_success = False
+        # 最終処理の実行
+        for operation_name, operation_func in final_operations:
+            try:
+                response = operation_func()
+                if response.status_code == 200:
+                    successful_operations.append(operation_name)
+                    self.logger.info(f"最終処理成功: {operation_name}")
+                else:
+                    error_msg = f"最終処理失敗: {operation_name}, Status: {response.status_code}"
+                    self.logger.error(error_msg)
+                    print(error_msg)
+                    # 最終処理で失敗した場合もロールバック
+                    self.rollback_data(head_item_key)
+                    return False
+            except Exception as e:
+                error_msg = f"最終処理例外: {operation_name}, Error: {e}"
+                self.logger.error(error_msg)
+                print(error_msg)
+                # 最終処理で失敗した場合もロールバック
+                self.rollback_data(head_item_key)
+                return False
 
-        # すべての処理が成功した場合のみTrueを返す
-        return all_success
+        # すべての処理が成功した場合
+        self.logger.info(
+            f"全ての挿入処理が成功: {head_item_key}, 成功した操作: {successful_operations}"
+        )
+        return True
 
     def generate_summary(self, head_item_key: str) -> bool:
         """

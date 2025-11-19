@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -15,7 +15,7 @@ class SchemaImport(BaseTag):
     head_item_key: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.schema_location and self.name_space:
             self.item_key = str(
@@ -38,7 +38,7 @@ class SchemaLinkBaseRef(BaseTag):
     source_file_id: Optional[str] = Field(default=None)
     href_source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.xlink_href and self.xlink_role:
             self.item_key = str(
@@ -64,7 +64,7 @@ class SchemaElement(BaseTag):
     head_item_key: Optional[str] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.name and self.head_item_key:
             self.item_key = str(

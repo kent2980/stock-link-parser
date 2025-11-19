@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -26,7 +26,7 @@ class QualitativeDocument(BaseTag):
     content: Optional[str] = Field(default=None, description="タイトル,本文")
     photo_url: Optional[str] = Field(default=None, description="画像URL")
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.content:
             self.item_key = str(

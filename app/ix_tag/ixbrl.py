@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import Field
 
@@ -21,7 +21,7 @@ class IxNonNumeric(BaseTag):
     source_file_id: Optional[str] = Field(default=None)
     xbrl_type: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.name and self.context and self.head_item_key:
             self.item_key = str(
@@ -52,7 +52,7 @@ class IxNonFraction(BaseTag):
     display_numeric: Optional[str] = Field(default=None)
     display_scale: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.name and self.context and self.head_item_key:
             self.item_key = str(
@@ -96,7 +96,7 @@ class IxContext(BaseTag):
     scenario: Optional[list] = Field(default=None)
     source_file_id: Optional[str] = Field(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.context_id and self.head_item_key:
             self.item_key = str(

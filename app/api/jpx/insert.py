@@ -1,5 +1,6 @@
 import json
 import sys
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -13,16 +14,16 @@ class Insert:
         output_path: 出力先ディレクトリ
     """
 
-    def __init__(self, api_base_url: str = None):
+    def __init__(self, api_base_url: Optional[str] = None) -> None:
         self.url = api_base_url + "/api/v1"
         self.data = self.get_stock_info_data()
 
-    def jpx_stock_info(self):
+    def jpx_stock_info(self) -> requests.Response:
         url = self.url + ep.POST_JPX_STOCK_INFOS
         response = requests.post(url, json={"data": self.data})
         return response
 
-    def get_stock_info_data(self):
+    def get_stock_info_data(self) -> List[Dict[str, Any]]:
         save_path = "output/excel/data_j.xls"
         info = si(save_path)
         return json.loads(info.get_info_to_json())
