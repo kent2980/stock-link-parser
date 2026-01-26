@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  stock-link-parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stock-link-parser
+    image: stock-link-parser:latest
+    
+    # 環境変数（.envファイルから読み込む）
+    env_file:
+      - .env
+    
+    # 環境変数の直接指定（必要に応じて）
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    
+    # ボリュームマウント
+    volumes:
+      # データディレクトリ（XBRLファイルなど）
+      - ./data:/app/data:ro
+      # 出力ディレクトリ
+      - ./output:/app/output
+      # ログディレクトリ
+      - ./logs:/app/logs
+      # 設定ファイル（必要に応じて）
+      - ./.env:/app/.env:ro
+    
+    # ネットワーク設定
+    networks:
+      - stock-link-network
+    
+    # リソース制限
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    
+    # 再起動ポリシー
+    restart: unless-stopped
+    
+    # ヘルスチェック
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  stock-link-network:
+    driver: bridge

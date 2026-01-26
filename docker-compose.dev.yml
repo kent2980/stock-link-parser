@@ -1,0 +1,47 @@
+version: '3.8'
+
+# 開発環境用のdocker-compose設定
+services:
+  stock-link-parser-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: stock-link-parser-dev
+    image: stock-link-parser:dev
+    
+    # 環境変数
+    env_file:
+      - .env
+    
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - XBRL_ENVIRONMENT=development
+      - XBRL_DEBUG=true
+      - XBRL_LOG_LEVEL=DEBUG
+    
+    # 開発用のボリュームマウント（ホットリロード対応）
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data:ro
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+      - ./tests:/app/tests:ro
+    
+    # ポートマッピング（必要に応じて）
+    # ports:
+    #   - "8000:8000"
+    
+    networks:
+      - stock-link-network
+    
+    # 開発時は再起動しない
+    restart: "no"
+    
+    # コマンドをオーバーライド（開発用）
+    command: tail -f /dev/null
+
+networks:
+  stock-link-network:
+    driver: bridge

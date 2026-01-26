@@ -1,0 +1,56 @@
+# 開発環境用のDockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# システムの依存関係をインストール
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libxml2-dev \
+    libxslt-dev \
+    libffi-dev \
+    curl \
+    vim \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# uvをインストール
+RUN pip install --no-cache-dir uv
+
+# プロジェクトファイルをコピー
+COPY pyproject.toml ./
+COPY uv.lock* ./
+
+# 依存関係をインストール（開発用も含む）
+RUN if [ -f uv.lock ]; then \
+        uv pip install --system --locked -e ".[dev]"; \
+    else \
+        uv pip install --system -e ".[dev]"; \
+    fi
+
+# 開発ツールを追加インストール
+RUN uv pip install --system \
+    ipython \
+    ipdb
+
+# アプリケーションコードをコピー
+COPY src/ ./src/
+COPY docker/ ./docker/
+COPY .env.example ./.env.example
+
+# 必要なディレクトリを作成
+RUN mkdir -p /app/output /app/logs /app/data
+
+# エントリーポイントを設定
+RUN chmod +x /app/docker/entrypoint.sh
+
+# 環境変数を設定
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# エントリーポイントを設定
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
+
+# デフォルトのコマンド（開発時はtailで待機）
+CMD ["tail", "-f", "/dev/null"]
