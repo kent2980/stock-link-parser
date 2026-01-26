@@ -144,10 +144,18 @@ class AppSettings(BaseSettings):
             return Path(self.lock_file_path)
         return self.project_root / "script.lock"
 
+    @property
+    def resolved_data_path(self) -> Path:
+        """データパスを解決する"""
+        if self.xbrl_data_path:
+            return Path(self.xbrl_data_path)
+        return self.project_root / "data"
+
     def ensure_directories(self) -> None:
         """必要なディレクトリを作成する"""
         self.resolved_output_path.mkdir(parents=True, exist_ok=True)
         self.resolved_log_dir.mkdir(parents=True, exist_ok=True)
+        self.resolved_data_path.mkdir(parents=True, exist_ok=True)
 
 
 class DatabaseSettings(BaseSettings):

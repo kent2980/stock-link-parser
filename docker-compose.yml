@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   stock-link-parser:
     build:
@@ -52,6 +50,66 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: stock-link-parser-api
+    image: stock-link-parser-api:latest
+    
+    # 環境変数（.envファイルから読み込む）
+    env_file:
+      - .env
+    
+    # 環境変数の直接指定
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    
+    # ボリュームマウント
+    volumes:
+      # データディレクトリ（XBRLファイルなど）
+      - ./data:/app/data:ro
+      # 出力ディレクトリ
+      - ./output:/app/output
+      # ログディレクトリ
+      - ./logs:/app/logs
+      # 設定ファイル
+      - ./.env:/app/.env:ro
+    
+    # ポートマッピング
+    ports:
+      - "8000:8000"
+    
+    # ネットワーク設定
+    networks:
+      - stock-link-network
+    
+    # リソース制限
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    
+    # 再起動ポリシー
+    restart: unless-stopped
+    
+    # ヘルスチェック
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # 依存関係（stock-link-parserサービスが先に起動）
+    depends_on:
+      - stock-link-parser
 
 networks:
   stock-link-network:

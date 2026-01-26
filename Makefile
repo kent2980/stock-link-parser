@@ -54,3 +54,35 @@ clean-dev: ## 開発環境のコンテナとイメージを削除
 rebuild: clean build ## イメージを再ビルド
 
 rebuild-dev: clean-dev build-dev ## 開発環境のイメージを再ビルド
+
+build-api: ## APIコンテナのイメージをビルド
+	docker-compose build api
+
+up-api: ## APIコンテナを起動
+	docker-compose up -d api
+
+down-api: ## APIコンテナを停止
+	docker-compose stop api
+
+logs-api: ## APIコンテナのログを表示
+	docker-compose logs -f api
+
+shell-api: ## APIコンテナ内でシェルを起動
+	docker-compose exec api bash
+
+restart-api: down-api up-api ## APIコンテナを再起動
+
+import-test-data: ## テストデータをインポート
+	.venv/bin/python src/tests/import_test_data.py --target data_dir
+
+import-test-data-fastapi: ## テストデータをFastAPIキャッシュにインポート
+	.venv/bin/python src/tests/import_test_data.py --target fastapi_cache
+
+import-test-data-both: ## テストデータを両方にインポート
+	.venv/bin/python src/tests/import_test_data.py --target both
+
+clean-docker: ## Dockerコンテナとネットワークをクリーンアップ
+	docker-compose down -v
+	docker network prune -f
+
+rebuild-api-clean: clean-docker build-api up-api ## APIを完全にクリーンアップして再ビルド

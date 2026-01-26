@@ -92,7 +92,20 @@ class BaseXbrlModel:
             # フォルダ名をランダムに生成
             dir_name = str(uuid4())
             # zipファイルを解凍するパスを指定
-            unzip_path = zip_path.parent / dir_name
+            # zip_path.parentが読み取り専用の場合に備えて、output_pathを使用
+            try:
+                # まずzip_path.parentを試す（既存の動作を維持）
+                unzip_path = zip_path.parent / dir_name
+                # ディレクトリを作成して書き込み可能かテスト
+                unzip_path.mkdir(parents=True, exist_ok=True)
+                # テストファイルを作成して削除（書き込み可能か確認）
+                test_file = unzip_path / ".test_write"
+                test_file.touch()
+                test_file.unlink()
+            except (PermissionError, OSError):
+                # zip_path.parentが読み取り専用の場合は、output_pathを使用
+                unzip_path = self.__output_path / dir_name
+                unzip_path.mkdir(parents=True, exist_ok=True)
             z.extractall(unzip_path.as_posix())
         return unzip_path.as_posix()
 
