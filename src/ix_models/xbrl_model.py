@@ -371,6 +371,37 @@ class XBRLModel(BaseXbrlModel):
         # 同じkeyを持つItemDictのitemを集約
         aggregated_items = self._aggregate_items_by_key(lists)
 
+        # 統合されたデータを追加
+        aggregated_dict = {item.key: item.item for item in aggregated_items}
+        
+        # ix_non_fraction_enrichedを追加
+        if "ix_non_fraction" in aggregated_dict:
+            non_fraction_item = [item for item in aggregated_items if item.key == "ix_non_fraction"][0]
+            if isinstance(non_fraction_item.item, list):
+                enriched_data = self._enrich_with_links(
+                    non_fraction_item.item, "ix_non_fraction", aggregated_dict
+                )
+                enriched_item = ItemDict()
+                enriched_item.id = "ix_non_fraction_enriched"
+                enriched_item.key = "ix_non_fraction_enriched"
+                enriched_item.item = enriched_data
+                enriched_item.sort_position = non_fraction_item.sort_position
+                aggregated_items.append(enriched_item)
+        
+        # ix_non_numeric_enrichedを追加
+        if "ix_non_numeric" in aggregated_dict:
+            non_numeric_item = [item for item in aggregated_items if item.key == "ix_non_numeric"][0]
+            if isinstance(non_numeric_item.item, list):
+                enriched_data = self._enrich_with_links(
+                    non_numeric_item.item, "ix_non_numeric", aggregated_dict
+                )
+                enriched_item = ItemDict()
+                enriched_item.id = "ix_non_numeric_enriched"
+                enriched_item.key = "ix_non_numeric_enriched"
+                enriched_item.item = enriched_data
+                enriched_item.sort_position = non_numeric_item.sort_position
+                aggregated_items.append(enriched_item)
+
         self.__all_items = aggregated_items
 
         return aggregated_items
@@ -476,6 +507,231 @@ class XBRLModel(BaseXbrlModel):
                 aggregated_dict[key] = [item.item]
 
         return aggregated_dict
+
+    def _enrich_with_links(
+        self, items: List[Dict[str, Any]], element_name: str, link_data: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """ix_non_fractionまたはix_non_numericのアイテムにリンク情報を統合する
+
+        Args:
+            items: ix_non_fractionまたはix_non_numericのアイテムリスト
+            element_name: 要素名（'ix_non_fraction'または'ix_non_numeric'）
+            link_data: リンクデータの辞書（省略時は自動取得）
+
+        Returns:
+            リンク情報が統合されたアイテムリスト
+        """
+        if not items:
+            return []
+
+        # リンクデータを取得（再帰を避けるため、既存のall_itemsを使用）
+        if link_data is None:
+            # 既に集約されたアイテムからリンクデータを取得
+            if self.__all_items is None:
+                # まだ初期化されていない場合は、マネージャーから直接取得
+                link_items = []
+                for _, manager in self.get_all_manager().items():
+                    for item in manager.items:
+                        link_items.append(item)
+                link_data = {item.key: item.item for item in link_items}
+            else:
+                link_data = {item.key: item.item for item in self.__all_items}
+
+        # 各リンクタイプのデータを取得
+        lab_locs = link_data.get("lab_link_locs", [])
+        lab_arcs = link_data.get("lab_link_arcs", [])
+        lab_values = link_data.get("lab_link_values", [])
+        cal_arcs = link_data.get("cal_link_arcs", [])
+        def_arcs = link_data.get("def_link_arcs", [])
+        pre_arcs = link_data.get("pre_link_arcs", [])
+        pre_locs = link_data.get("pre_link_locs", [])
+
+        # インデックスを作成（高速検索のため）
+        # lab_link_locs: xlink_href -> loc
+        lab_locs_by_href = {}
+        lab_locs_by_name_part = {}  # 要素名の部分一致用
+        for loc in lab_locs:
+            href = loc.get("xlink_href")
+            if href:
+                lab_locs_by_href[href] = loc
+                # アンダースコア以降の部分もインデックスに追加
+                if "_" in href:
+                    name_part = href.split("_", 1)[-1]
+                    if name_part not in lab_locs_by_name_part:
+                        lab_locs_by_name_part[name_part] = []
+                    lab_locs_by_name_part[name_part].append(loc)
+
+        lab_arcs_by_from = {
+            arc.get("xlink_from"): arc
+            for arc in lab_arcs
+            if arc.get("xlink_from")
+        }
+        lab_values_by_to = {
+            val.get("xlink_label"): val
+            for val in lab_values
+            if val.get("xlink_label")
+        }
+        cal_arcs_by_from = {
+            arc.get("xlink_from"): arc
+            for arc in cal_arcs
+            if arc.get("xlink_from")
+        }
+        def_arcs_by_from = {
+            arc.get("xlink_from"): arc
+            for arc in def_arcs
+            if arc.get("xlink_from")
+        }
+        pre_arcs_by_from = {
+            arc.get("xlink_from"): arc
+            for arc in pre_arcs
+            if arc.get("xlink_from")
+        }
+        pre_locs_by_href = {
+            loc.get("xlink_href"): loc for loc in pre_locs if loc.get("xlink_href")
+        }
+
+        enriched_items = []
+
+        for item in items:
+            enriched_item = item.copy()
+            element_name_value = item.get("name")
+
+            if not element_name_value:
+                enriched_items.append(enriched_item)
+                continue
+
+            # ラベル情報を統合
+            labels = []
+            # lab_link_locsで要素名を検索（完全一致または部分一致）
+            matching_locs = []
+            if element_name_value in lab_locs_by_href:
+                matching_locs.append(lab_locs_by_href[element_name_value])
+            else:
+                # 部分一致を試す（nameの最後の部分がxlink_hrefに含まれる）
+                if "_" in element_name_value:
+                    name_part = element_name_value.split("_")[-1]
+                    if name_part in lab_locs_by_name_part:
+                        matching_locs.extend(lab_locs_by_name_part[name_part])
+                # 逆方向も試す（xlink_hrefの最後の部分がnameに含まれる）
+                for href, loc in lab_locs_by_href.items():
+                    if "_" in href:
+                        href_part = href.split("_")[-1]
+                        if href_part in element_name_value or element_name_value in href:
+                            if loc not in matching_locs:
+                                matching_locs.append(loc)
+
+            # マッチしたlocからラベルを取得
+            for loc in matching_locs:
+                xlink_label = loc.get("xlink_label")
+                if xlink_label and xlink_label in lab_arcs_by_from:
+                    arc = lab_arcs_by_from[xlink_label]
+                    label_to = arc.get("xlink_to")
+                    if label_to and label_to in lab_values_by_to:
+                        label_value = lab_values_by_to[label_to]
+                        labels.append(
+                            {
+                                "label": label_value.get("label", ""),
+                                "role": label_value.get("xlink_role", ""),
+                                "lang": label_value.get("xml_lang", ""),
+                            }
+                        )
+
+            # 計算リンクを統合（複数のリンクが存在する可能性がある）
+            calculation_links = []
+            # 完全一致
+            if element_name_value in cal_arcs_by_from:
+                arc = cal_arcs_by_from[element_name_value]
+                calculation_links.append(
+                    {
+                        "from": element_name_value,
+                        "to": arc.get("xlink_to"),
+                        "order": arc.get("xlink_order"),
+                        "weight": arc.get("xlink_weight"),
+                        "arcrole": arc.get("xlink_arcrole"),
+                    }
+                )
+            # 部分一致も検索
+            for from_name, arc in cal_arcs_by_from.items():
+                if from_name != element_name_value:
+                    # nameの最後の部分がfrom_nameに含まれる、またはその逆
+                    if "_" in element_name_value:
+                        name_part = element_name_value.split("_")[-1]
+                        if name_part in from_name or from_name in element_name_value:
+                            calculation_links.append(
+                                {
+                                    "from": from_name,
+                                    "to": arc.get("xlink_to"),
+                                    "order": arc.get("xlink_order"),
+                                    "weight": arc.get("xlink_weight"),
+                                    "arcrole": arc.get("xlink_arcrole"),
+                                }
+                            )
+
+            # 定義リンクを統合
+            definition_links = []
+            if element_name_value in def_arcs_by_from:
+                arc = def_arcs_by_from[element_name_value]
+                definition_links.append(
+                    {
+                        "from": element_name_value,
+                        "to": arc.get("xlink_to"),
+                        "order": arc.get("xlink_order"),
+                        "arcrole": arc.get("xlink_arcrole"),
+                    }
+                )
+            # 部分一致も検索
+            for from_name, arc in def_arcs_by_from.items():
+                if from_name != element_name_value:
+                    if "_" in element_name_value:
+                        name_part = element_name_value.split("_")[-1]
+                        if name_part in from_name or from_name in element_name_value:
+                            definition_links.append(
+                                {
+                                    "from": from_name,
+                                    "to": arc.get("xlink_to"),
+                                    "order": arc.get("xlink_order"),
+                                    "arcrole": arc.get("xlink_arcrole"),
+                                }
+                            )
+
+            # 表示リンクを統合
+            presentation_links = []
+            if element_name_value in pre_arcs_by_from:
+                arc = pre_arcs_by_from[element_name_value]
+                presentation_links.append(
+                    {
+                        "from": element_name_value,
+                        "to": arc.get("xlink_to"),
+                        "order": arc.get("xlink_order"),
+                        "preferred_label": arc.get("preferred_label"),
+                        "arcrole": arc.get("xlink_arcrole"),
+                    }
+                )
+            # 部分一致も検索
+            for from_name, arc in pre_arcs_by_from.items():
+                if from_name != element_name_value:
+                    if "_" in element_name_value:
+                        name_part = element_name_value.split("_")[-1]
+                        if name_part in from_name or from_name in element_name_value:
+                            presentation_links.append(
+                                {
+                                    "from": from_name,
+                                    "to": arc.get("xlink_to"),
+                                    "order": arc.get("xlink_order"),
+                                    "preferred_label": arc.get("preferred_label"),
+                                    "arcrole": arc.get("xlink_arcrole"),
+                                }
+                            )
+
+            # 統合情報を追加
+            enriched_item["labels"] = labels
+            enriched_item["calculation_links"] = calculation_links
+            enriched_item["definition_links"] = definition_links
+            enriched_item["presentation_links"] = presentation_links
+
+            enriched_items.append(enriched_item)
+
+        return enriched_items
 
     def get_all_items_as_dataclass(self) -> XBRLDataProtocol:
         """ItemDict.keyをプロパティとした動的データクラスを作成し、プロパティの値をItemDict.itemにした
