@@ -1,5 +1,4 @@
 import threading
-import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import field, make_dataclass
 from pathlib import Path
@@ -7,6 +6,8 @@ from typing import (Any, Dict, List, Optional, Protocol, Type, TypedDict,
                     Union, runtime_checkable)
 
 from src.exception import XbrlListEmptyError
+from src.exception.base_exception import ManagerInitError
+from src.exception.error_handler import ErrorContext, get_logger
 from src.ix_manager import (BaseXbrlManager, CalLinkManager, DefLinkManager,
                             IXBRLManager, LabelManager, PreLinkManager,
                             QualitativeManager, SchemaManager)
@@ -15,6 +16,9 @@ from src.ix_manager.link_manager import LinkHrefMasterManager
 from src.ix_tag import FilePath
 
 from .base_xbrl_model import BaseXbrlModel
+
+# モジュールレベルのロガーを取得
+logger = get_logger(__name__)
 
 
 class XBRLItem(TypedDict):
@@ -173,16 +177,35 @@ class XBRLModel(BaseXbrlModel):
                 executor.submit(self._init_ixbrl_manager): "ixbrl_manager",
             }
 
+            # 初期化エラーを収集
+            init_errors: Dict[str, Exception] = {}
+
             for future in as_completed(futures):
                 manager_name = futures[future]
-                try:
+                with ErrorContext(
+                    f"{manager_name}の初期化",
+                    ManagerInitError,
+                    reraise=False,
+                    logger=logger,
+                ) as ctx:
                     result = future.result()
                     setattr(self, f"_{manager_name}", result)
-                except Exception as e:
-                    print(f"{manager_name}の初期化中にエラーが発生しました: {e}")
-                    traceback.print_exc()  # ここでスタックトレースを出力
+
+                if not ctx.success:
+                    init_errors[manager_name] = ctx.original_error
+                    logger.warning(
+                        f"{manager_name}の初期化をスキップしました: {ctx.error}"
+                    )
+
             # ixbrl_managerの初期化が完了したことを通知
             self.ixbrl_manager_initialized.set()
+
+            # 初期化エラーのサマリーをログに記録
+            if init_errors:
+                logger.warning(
+                    f"一部のマネージャーの初期化に失敗しました: "
+                    f"{list(init_errors.keys())}"
+                )
 
         # if self.__ixbrl_manager is None:
         #     raise XbrlListEmptyError("XBRLファイルが空です。")
@@ -190,8 +213,23 @@ class XBRLModel(BaseXbrlModel):
     def _init_manager(
         self, manager_class: Type[BaseXbrlManager]
     ) -> Optional[BaseXbrlManager]:
-        try:
-            if manager_class.__name__ == "LabelManager":
+        """マネージャーを初期化する
+
+        Args:
+            manager_class: 初期化するマネージャークラス
+
+        Returns:
+            初期化されたマネージャー、または失敗時はNone
+        """
+        manager_name = manager_class.__name__
+
+        with ErrorContext(
+            f"{manager_name}の初期化",
+            ManagerInitError,
+            reraise=False,
+            logger=logger,
+        ) as ctx:
+            if manager_name == "LabelManager":
                 return manager_class(
                     self.directory_path,
                     self.output_path,
@@ -204,8 +242,9 @@ class XBRLModel(BaseXbrlModel):
                     self.output_path,
                     head_item_key=self.head_item_key,
                 )
-        except XbrlListEmptyError as e:
-            print(e)
+
+        if not ctx.success:
+            logger.debug(f"{manager_name}の初期化をスキップ: {ctx.error}")
             return None
 
     @property

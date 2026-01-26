@@ -1,13 +1,10 @@
-import os
 from time import sleep
 
 import jaconv
 import pandas as pd
 import requests
-from dotenv import load_dotenv
 
-# .envファイルから環境変数を読み込む
-load_dotenv()
+from src.config import settings
 
 
 class StockInfo:
@@ -15,7 +12,7 @@ class StockInfo:
 
     def __init__(self, save_path):
         self.save_path = save_path
-        self.url = os.getenv("TSE_STOCK_LIST_URL")
+        self.url = settings.tse_stock_list_url
         self.info = self.get_info()
 
     def get_info(self):

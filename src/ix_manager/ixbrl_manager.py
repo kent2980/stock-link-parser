@@ -2,10 +2,15 @@ import re
 from typing import List, Optional
 
 from src.exception import XbrlListEmptyError
+from src.exception.base_exception import DataProcessingError, ParserInitError
+from src.exception.error_handler import ErrorContext, get_logger
 from src.exception.xbrl_parser_exception import DocumentNameTagNotFoundError
 from src.ix_manager import BaseXbrlManager
 from src.ix_parser import IxbrlParser
 from src.ix_tag import IxContext, IxHeader, IxNonFraction, IxNonNumeric
+
+# モジュールレベルのロガーを取得
+logger = get_logger(__name__)
 
 
 class IXBRLManager(BaseXbrlManager[IxbrlParser]):
@@ -35,7 +40,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         'is_sfp': r".*StatementOfFinancialPositionI.*TextBlock$",
     }
 
-    def _init_(
+    def __init__(
         self, directory_path: str, head_item_key: Optional[str] = None
     ) -> None:
         """
@@ -47,7 +52,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         Returns:
             None
         """
-        super()._init_(directory_path, head_item_key=head_item_key)
+        super().__init__(directory_path, head_item_key=head_item_key)
         self._set_htmlbase_files("ixbrl")
 
         if len(self.related_files) == 0:
@@ -86,35 +91,51 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         item_key: str,
         property_name: str
     ) -> List[List]:
-        """
-        parserのデータを処理します。
+        """parserのデータを処理します。
 
         Parameters:
             parser_method_name (str): parserのメソッド名
             item_key (str): アイテムのキー
             property_name (str): プロパティの名前
+
+        Returns:
+            処理されたデータのリスト、または失敗時はNone
         """
         # 既に設定されている場合は早期リターン
-        if getattr(self, property_name) is not None:
+        if getattr(self, property_name, None) is not None:
             return None
 
         rows: List[List] = []
+        error_count = 0
 
         for parser in self.parsers:
-            try:
-                id = parser.source_file_id
+            source_file_id = getattr(parser, 'source_file_id', 'unknown')
 
+            with ErrorContext(
+                f"{parser_method_name}の処理",
+                DataProcessingError,
+                reraise=False,
+                logger=logger,
+            ) as ctx:
                 parser_method = getattr(parser, parser_method_name)
                 parser_method()
 
                 data = parser.data
                 rows.append(data)
 
-                self._set_items(id=id, key=item_key, items=data)
-            except Exception as e:
-                # ログ出力を追加
-                print(f"Error processing {parser_method_name} for {id}: {e}")
-                # 必要に応じて例外を再スローまたは継続
+                self._set_items(id=source_file_id, key=item_key, items=data)
+
+            if not ctx.success:
+                error_count += 1
+                logger.debug(
+                    f"{parser_method_name}の処理をスキップ "
+                    f"(source_file_id={source_file_id}): {ctx.error}"
+                )
+
+        if error_count > 0:
+            logger.warning(
+                f"{parser_method_name}で{error_count}件のエラーが発生しました"
+            )
 
         setattr(self, property_name, rows)
         return rows
@@ -122,16 +143,30 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
     def _init_parser(self) -> None:
         """parserを初期化します。"""
         parsers: List[IxbrlParser] = []
+        skipped_files: List[str] = []
+
         for _, row in self.related_files.iterrows():
-            try:
+            xlink_href = row.get("xlink_href", "unknown")
+
+            with ErrorContext(
+                f"パーサーの初期化 ({xlink_href})",
+                ParserInitError,
+                reraise=False,
+                logger=logger,
+            ) as ctx:
                 parser = IxbrlParser(
                     row["xlink_href"], head_item_key=self.head_item_key
                 )
                 parsers.append(parser)
-            except DocumentNameTagNotFoundError:
-                # 後でエラーログを出力する処理を追加するために注釈を追加
-                # logger.error(f"DocumentNameタグが見つかりません。[head_item_key]: {self.head_item_key}")
-                pass
+
+            if not ctx.success:
+                skipped_files.append(xlink_href)
+
+        if skipped_files:
+            logger.info(
+                f"{len(skipped_files)}個のファイルをスキップしました "
+                f"(head_item_key={self.head_item_key})"
+            )
 
         self.parsers = parsers
 
@@ -227,6 +262,8 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
 
         # 非数値データを取得
         non_numeric_lists: List[List[IxNonNumeric]] = self.ix_non_numeric
+        if non_numeric_lists is None:
+            non_numeric_lists = []
         non_numeric_list = [item for items in non_numeric_lists for item in items]
 
         # パターンマッチングで値を抽出
