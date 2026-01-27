@@ -1,0 +1,25 @@
+# React.js（TypeScript）用のDockerfile
+FROM node:20-alpine
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# package.json、package-lock.json、.npmrcをコピー
+COPY frontend/package*.json ./
+COPY frontend/.npmrc* ./
+
+# 依存関係をインストール
+RUN npm ci || npm install
+
+# アプリケーションコードをコピー
+COPY frontend/ ./
+
+# 環境変数を設定
+ENV REACT_APP_API_URL=http://localhost:8000
+ENV CHOKIDAR_USEPOLLING=true
+
+# ポートを公開
+EXPOSE 3000
+
+# 開発サーバーを起動
+CMD ["npm", "start"]

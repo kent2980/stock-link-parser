@@ -1,4 +1,6 @@
 import psycopg2
+import json
+from psycopg2.extras import Json
 
 
 class PostgreSqlConnector:
@@ -140,9 +142,17 @@ class PostgreSqlConnector:
         try:
             cursor = self.connection.cursor()
             for _, row in df.iterrows():
+                # 辞書型やリスト型の値をJSONに変換
+                values = []
+                for val in row:
+                    if isinstance(val, (dict, list)):
+                        values.append(Json(val))
+                    else:
+                        values.append(val)
+                
                 query = f"INSERT INTO {table_name} ({', '.join(df.columns)})\
                     VALUES ({', '.join(['%s'] * len(df.columns))})"
-                cursor.execute(query, tuple(row))
+                cursor.execute(query, tuple(values))
             self.connection.commit()
             print("Data added successfully!")
         except (Exception, psycopg2.Error) as error:
@@ -178,16 +188,27 @@ class PostgreSqlConnector:
                 "string": "TEXT",
             }
 
-            columns = ", ".join(
-                [
-                    (
-                        f"{col} {dtype_mapping[str(df.dtypes[col])]}"
-                        if str(df.dtypes[col]) in dtype_mapping
-                        else f"{col} TEXT"
-                    )  # マッピングがない場合はデフォルトで TEXT とする
-                    for col in df.columns
-                ]
-            )
+            # 各カラムの型を決定（辞書型やリスト型の場合はJSON型を使用）
+            columns = []
+            for col in df.columns:
+                # サンプルデータを確認して辞書型やリスト型かどうかを判定
+                sample_value = None
+                for _, row in df.head(10).iterrows():
+                    val = row[col]
+                    if val is not None and (isinstance(val, (dict, list))):
+                        sample_value = val
+                        break
+                
+                if sample_value is not None:
+                    # 辞書型やリスト型の場合はJSON型を使用
+                    columns.append(f"{col} JSONB")
+                elif str(df.dtypes[col]) in dtype_mapping:
+                    columns.append(f"{col} {dtype_mapping[str(df.dtypes[col])]}")
+                else:
+                    # マッピングがない場合はデフォルトで TEXT とする
+                    columns.append(f"{col} TEXT")
+            
+            columns = ", ".join(columns)
 
             query = f"CREATE TABLE {table_name} ({columns})"
             cursor.execute(query)
@@ -289,10 +310,18 @@ class PostgreSqlConnector:
         try:
             cursor = self.connection.cursor()
             for _, row in df.iterrows():
+                # 辞書型やリスト型の値をJSONに変換
+                values = []
+                for val in row:
+                    if isinstance(val, (dict, list)):
+                        values.append(Json(val))
+                    else:
+                        values.append(val)
+                
                 query = f"INSERT INTO {table_name} ({', '.join(df.columns)}) \
                     VALUES ({', '.join(['%s'] * len(df.columns))}) \
                         ON CONFLICT DO NOTHING"
-                cursor.execute(query, tuple(row))
+                cursor.execute(query, tuple(values))
             self.connection.commit()
             print("Data added successfully!")
         except (Exception, psycopg2.Error) as error:

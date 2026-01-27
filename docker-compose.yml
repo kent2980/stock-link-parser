@@ -1,4 +1,26 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stock-link-parser-postgres
+    environment:
+      POSTGRES_DB: ${XBRL_DB_DATABASE:-xbrl}
+      POSTGRES_USER: ${XBRL_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${XBRL_DB_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${XBRL_DB_PORT:-5432}:5432"
+    networks:
+      - stock-link-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${XBRL_DB_USERNAME:-postgres} -d ${XBRL_DB_DATABASE:-xbrl}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   stock-link-parser:
     build:
       context: .
@@ -29,6 +51,11 @@ services:
     # ネットワーク設定
     networks:
       - stock-link-network
+    
+    # PostgreSQLコンテナへの依存関係
+    depends_on:
+      postgres:
+        condition: service_healthy
     
     # リソース制限
     deploy:
@@ -110,7 +137,45 @@ services:
     # 依存関係（stock-link-parserサービスが先に起動）
     depends_on:
       - stock-link-parser
+      - postgres
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: stock-link-parser-web
+    image: stock-link-parser-web:latest
+    
+    # ボリュームマウント（開発用）
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    
+    # ポートマッピング
+    ports:
+      - "3000:3000"
+    
+    # 環境変数
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    
+    # ネットワーク設定
+    networks:
+      - stock-link-network
+    
+    # 依存関係
+    depends_on:
+      - api
+    
+    # 再起動ポリシー
+    restart: unless-stopped
 
 networks:
   stock-link-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

@@ -1,0 +1,103 @@
+.stock-list {
+  padding: 20px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.header-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.header-item {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 4px solid #007bff;
+}
+
+.header-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: #f8f9fa;
+}
+
+.header-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-company-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.header-securities-code {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.header-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: #666;
+  font-size: 14px;
+}
+
+.header-document-name {
+  font-weight: 500;
+  color: #555;
+}
+
+.header-reporting-date {
+  color: #888;
+}
+
+.header-arrow {
+  font-size: 24px;
+  color: #007bff;
+  font-weight: bold;
+  margin-left: 20px;
+  transition: transform 0.2s;
+}
+
+.header-item:hover .header-arrow {
+  transform: translateX(4px);
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 18px;
+}
