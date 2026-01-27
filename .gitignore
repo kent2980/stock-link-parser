@@ -5,6 +5,9 @@ extract_csv/
 doc/
 Logs/
 Log/
+data/
+temp/
+output/
 .vscode/
 .pytest_cache/
 # */tests/.data

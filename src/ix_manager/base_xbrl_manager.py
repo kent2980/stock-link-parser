@@ -102,7 +102,11 @@ class BaseXbrlManager(Generic[T]):
             if isinstance(item, dict):
                 items_dicts.append(item)
             elif isinstance(item, BaseTag):
-                items_dict = item.__dict__
+                # Pydanticモデルの場合はmodel_dump()を使用、それ以外は__dict__を使用
+                if hasattr(item, "model_dump"):
+                    items_dict = item.model_dump()
+                else:
+                    items_dict = item.__dict__
                 items_dicts.append(items_dict)
             else:
                 raise TypeError(f"Unsupported item type: {type(item)}")

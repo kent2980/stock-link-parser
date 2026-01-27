@@ -81,6 +81,16 @@ import-test-data-fastapi: ## テストデータをFastAPIキャッシュにイ�
 import-test-data-both: ## テストデータを両方にインポート
 	.venv/bin/python src/tests/import_test_data.py --target both
 
+import-data: ## 指定ディレクトリからzipファイルをインポート（XBRL_XBRL_DATA_PATHから）
+	.venv/bin/python src/scripts/import_data_from_directory.py
+
+import-data-from: ## 指定ディレクトリからzipファイルをインポート（SOURCE_DIRを指定）
+	@if [ -z "$(SOURCE_DIR)" ]; then \
+		echo "Error: SOURCE_DIR must be specified. Usage: make import-data-from SOURCE_DIR=/path/to/directory"; \
+		exit 1; \
+	fi
+	.venv/bin/python src/scripts/import_data_from_directory.py --source-dir $(SOURCE_DIR)
+
 clean-docker: ## Dockerコンテナとネットワークをクリーンアップ
 	docker-compose down -v
 	docker network prune -f

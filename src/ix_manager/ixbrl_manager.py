@@ -22,15 +22,15 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
     # クラスレベルの定数として定義
     HEADER_PATTERNS = {
         'company_name': r"CompanyName|AssetManagerREIT",
-        'securities_code': r"Securit.*Code$",
+        'securities_code': r"Securit.*Code|SecurityCode",
         'document_name': r"DocumentName",
-        'reporting_date': r"_FilingDate$|_ReportingDateOf.*Correction.*",
-        'current_period': r"TypeOfCurrentPeriod",
+        'reporting_date': r"FilingDate|ReportingDateOf.*Correction",
+        'current_period': r"TypeOfCurrentPeriod|CurrentFiscalYearEndDate",
         'url': r".*URL.*",
-        'fiscal_year_end': r"(?=.*\_FiscalYearEnd.*)",
+        'fiscal_year_end': r"FiscalYearEnd",
         'tel': r".*Tel$",
         'specific_business': r"SpecificBusiness",
-        'listed_market': r"TokyoStockExchange$",
+        'listed_market': r"TokyoStockExchange$|JapanSecuritiesDealersAssociation",
         'market_section': r"TokyoStockExchange(?!$)",
         'is_bs': r".*BalanceSheet.*TextBlock$",
         'is_pl': r"(.*StatementOfIncome|.*StatementOfProfitOrLoss).*TextBlock$",
@@ -173,9 +173,9 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
     def _init_manager(self) -> None:
         """managerを初期化します。"""
         self._ix_non_fraction = self._get_ix_non_fraction()  # 他のメソッドを呼び出す前に呼び出す
-        self._ix_header = self._get_ix_header()
         self.set_source_file(self.parsers, class_name="ix")
-        self._ix_non_numeric = self._get_ix_non_numeric()
+        self._ix_non_numeric = self._get_ix_non_numeric()  # _get_ix_header()の前に呼び出す必要がある
+        self._ix_header = self._get_ix_header()  # ix_non_numericが必要なため、後に呼び出す
         self._ix_context = self._get_ix_context()
 
         self.items.sort(key=lambda x: x.sort_position)
@@ -254,7 +254,7 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
             'is_ci': False,
             'is_sce': False,
             'is_sfp': False,
-            'fiscal_year_end': None,
+            'fy_year_end': None,  # IxHeaderのフィールド名に合わせて修正
             'tel': None,
             'report_type': None,
             'specific_business': None,
@@ -295,11 +295,15 @@ class IXBRLManager(BaseXbrlManager[IxbrlParser]):
         string_fields = [
             'company_name', 'securities_code', 'document_name',
             'reporting_date', 'current_period', 'url',
-            'fiscal_year_end', 'tel'
+            'fy_year_end', 'tel'  # IxHeaderのフィールド名に合わせて修正
         ]
 
         for field in string_fields:
-            if re.search(self.HEADER_PATTERNS[field], item.name):
+            # HEADER_PATTERNSのキーとheader_dataのキーが異なる場合のマッピング
+            pattern_key = field
+            if field == 'fy_year_end':
+                pattern_key = 'fiscal_year_end'  # HEADER_PATTERNSではfiscal_year_endを使用
+            if re.search(self.HEADER_PATTERNS[pattern_key], item.name):
                 header_data[field] = item.value
                 return
 

@@ -48,22 +48,6 @@ curl http://localhost:8000/health
 
 ### XBRLデータエンドポイント
 
-#### `GET /api/v1/xbrl/head-item-key`
-zipファイル名からhead_item_keyを取得
-
-```bash
-# zipファイル名を指定
-curl "http://localhost:8000/api/v1/xbrl/head-item-key?zip_file_name=081220250911556517.zip"
-```
-
-**レスポンス:**
-```json
-{
-  "zip_file_name": "081220250911556517.zip",
-  "head_item_key": "3454ba2c-fdea-12f3-a27a-083f6447e3b2"
-}
-```
-
 #### `GET /api/v1/xbrl/head-item-keys`
 すべてのhead_item_keyの一覧を取得（パラメータなし）
 
