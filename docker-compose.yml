@@ -32,15 +32,16 @@ services:
     env_file:
       - .env
     
-    # 環境変数の直接指定（必要に応じて）
+    # 環境変数の直接指定（コンテナ内からAPIへはサービス名で接続）
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
+      - XBRL_API_BASE_URL=http://api:8000
     
     # ボリュームマウント
     volumes:
       # データディレクトリ（XBRLファイルなど）
-      - ./data:/app/data:ro
+      - ${XBRL_DATA_DIR:-./data}:/app/data:ro
       # 出力ディレクトリ
       - ./output:/app/output
       # ログディレクトリ
@@ -52,10 +53,12 @@ services:
     networks:
       - stock-link-network
     
-    # PostgreSQLコンテナへの依存関係
+    # PostgreSQL と API コンテナへの依存関係（API経由で挿入するため）
     depends_on:
       postgres:
         condition: service_healthy
+      api:
+        condition: service_started
     
     # リソース制限
     deploy:
@@ -97,7 +100,7 @@ services:
     # ボリュームマウント
     volumes:
       # データディレクトリ（XBRLファイルなど）
-      - ./data:/app/data:ro
+      - ${XBRL_DATA_DIR:-./data}:/app/data:ro
       # 出力ディレクトリ
       - ./output:/app/output
       # ログディレクトリ
@@ -134,10 +137,10 @@ services:
       retries: 3
       start_period: 40s
     
-    # 依存関係（stock-link-parserサービスが先に起動）
+    # 依存関係（PostgreSQL のみ。API は DB からデータを取得する）
     depends_on:
-      - stock-link-parser
-      - postgres
+      postgres:
+        condition: service_healthy
 
   web:
     build:
@@ -168,6 +171,47 @@ services:
     # 依存関係
     depends_on:
       - api
+    
+    # 再起動ポリシー
+    restart: unless-stopped
+
+  watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: stock-link-parser-watcher
+    image: stock-link-parser-api:latest
+    
+    # 環境変数（.envファイルから読み込む）
+    env_file:
+      - .env
+    
+    # 環境変数の直接指定
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    
+    # ボリュームマウント
+    volumes:
+      # データディレクトリ（XBRLファイルなど）- 読み書き可能にする
+      - ${XBRL_DATA_DIR:-./data}:/app/data
+      # 出力ディレクトリ
+      - ./output:/app/output
+      # ログディレクトリ
+      - ./logs:/app/logs
+      # 設定ファイル
+      - ./.env:/app/.env:ro
+    
+    # ネットワーク設定
+    networks:
+      - stock-link-network
+    
+    # 依存関係
+    depends_on:
+      - postgres
+    
+    # コマンド: ファイル監視スクリプトを実行
+    command: python src/scripts/watch_and_import.py
     
     # 再起動ポリシー
     restart: unless-stopped

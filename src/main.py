@@ -5,7 +5,10 @@ XBRLファイルを解析し、APIにデータを挿入します。
 """
 
 import sys
+import time
 from pathlib import Path
+
+import requests
 
 from src.api.ix.insert import Insert
 from src.config import settings
@@ -19,6 +22,31 @@ setup_logging(
     log_to_file=settings.log_to_file,
 )
 logger = get_logger(__name__)
+
+
+def wait_for_api(api_base_url: str, max_attempts: int = 30, interval_sec: float = 2.0) -> bool:
+    """APIの起動を待つ。ヘルスチェックエンドポイントにリトライする。
+
+    Args:
+        api_base_url: APIのベースURL（例: http://api:8000）
+        max_attempts: 最大試行回数
+        interval_sec: 試行間隔（秒）
+
+    Returns:
+        APIが応答した場合True、タイムアウトした場合False
+    """
+    health_url = api_base_url.rstrip("/") + "/health"
+    for attempt in range(1, max_attempts + 1):
+        try:
+            resp = requests.get(health_url, timeout=5)
+            if resp.status_code == 200:
+                logger.info(f"APIに接続しました ({health_url})")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.debug(f"API接続試行 {attempt}/{max_attempts}: {e}")
+        if attempt < max_attempts:
+            time.sleep(interval_sec)
+    return False
 
 
 def main(xbrl_data_path: str = None) -> int:
@@ -52,6 +80,15 @@ def main(xbrl_data_path: str = None) -> int:
     lock_file.touch()
 
     logger.info(f"XBRL処理を開始します (data_path={data_path})")
+
+    # APIの起動を待つ（Dockerでapiコンテナが遅延起動する場合に対応）
+    if not wait_for_api(api_base_url):
+        logger.error(
+            f"APIに接続できません ({api_base_url})。"
+            "apiコンテナが起動しているか確認してください。"
+            "例: docker-compose up -d api"
+        )
+        return 1
 
     try:
         insert = Insert(str(output_path), api_base_url)

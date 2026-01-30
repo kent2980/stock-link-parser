@@ -722,6 +722,30 @@ async def get_xbrl_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/v1/xbrl/ix/head/is_active/")
+async def is_active_head(head_item_key: str = Query(..., description="head_item_key")):
+    """指定したhead_item_keyがデータベースに存在するか（有効か）を返す。
+    Insertスクリプトが重複挿入をスキップするために使用する。
+    """
+    try:
+        connector = get_db_connector()
+        if not connector or not connector.connection:
+            return {"is_active": False}
+        cursor = connector.connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT 1 FROM ix_file_path WHERE head_item_key = %s LIMIT 1",
+                (head_item_key,),
+            )
+            exists = cursor.fetchone() is not None
+            return {"is_active": exists}
+        finally:
+            cursor.close()
+    except Exception as e:
+        logger.warning(f"is_active_head 確認中にエラー: {e}")
+        return {"is_active": False}
+
+
 @app.get("/api/v1/xbrl/files/{head_item_key}")
 async def get_xbrl_file_info(head_item_key: str):
     """特定のXBRLファイルのメタ情報を取得（データベースからのみ）"""

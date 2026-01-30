@@ -215,12 +215,21 @@ class Insert:
         self.__response_error_logging(response)
         return response
 
-    def is_active_head(self, head_item_key: str) -> Dict[str, Any]:
+    def is_active_head(self, head_item_key: str) -> bool:
+        """head_item_keyがAPI側で既に登録済み（有効）かどうかを返す。
+        404や接続エラー時はFalse（未登録として挿入を試行する）。
+        """
         url = self.url + ep.IS_ACTIVE_HEAD
-        response = requests.get(url, params={"head_item_key": head_item_key})
-        # レスポンスエラーをログに記録
-        self.__response_error_logging(response)
-        return response.json()
+        try:
+            response = requests.get(url, params={"head_item_key": head_item_key}, timeout=10)
+            self.__response_error_logging(response)
+            if response.status_code != 200:
+                return False
+            data = response.json()
+            return bool(data.get("is_active", False))
+        except (requests.exceptions.RequestException, ValueError) as e:
+            self.logger.debug(f"is_active_head 取得失敗 (未登録として扱う): {e}")
+            return False
 
     def update_head_generate(self, head_item_key: str) -> requests.Response:
         url = self.url + ep.UPDATE_HEAD_GENERATE

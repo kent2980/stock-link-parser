@@ -166,3 +166,15 @@ logs-web: ## Webアプリケーションコンテナのログを表示
 
 shell-web: ## Webアプリケーションコンテナ内でシェルを起動
 	docker-compose exec web sh
+
+up-watcher: ## ファイル監視サービスを起動
+	docker-compose up -d watcher
+
+logs-watcher: ## ファイル監視サービスのログを表示
+	docker-compose logs -f watcher
+
+stop-watcher: ## ファイル監視サービスを停止
+	docker-compose stop watcher
+
+restart-watcher: ## ファイル監視サービスを再起動
+	docker-compose restart watcher
